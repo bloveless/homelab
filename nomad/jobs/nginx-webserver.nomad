@@ -3,7 +3,7 @@ job "nginx-webserver" {
   type = "service"
 
   group "webserver" {
-    count = 3
+    count = 1
     network {
       port "http" {
         to = 80
