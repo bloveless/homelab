@@ -11,8 +11,8 @@ job "webserver" {
     }
 
     service {
-      name = "nginx-webserver"
-      tags = ["urlprefix-/nginx"]
+      name = "apache-webserver"
+      tags = ["urlprefix-/"]
       port = "http"
       check {
         name     = "alive"
@@ -30,10 +30,10 @@ job "webserver" {
       mode = "fail"
     }
 
-    task "nginx" {
+    task "apache" {
       driver = "docker"
       config {
-        image = "nginx:latest"
+        image = "httpd:latest"
         ports = ["http"]
       }
     }
