@@ -12,7 +12,10 @@ job "brennonloveless-com" {
 
     service {
       name = "brennonloveless-com-webserver"
-      tags = ["urlprefix-brennonloveless.com/"]
+      tags = [
+	    "urlprefix-brennonloveless.com/",
+	    "urlprefix-brennonloveless.lan.brennonloveless.com/"
+	  ]
       port = "http"
       check {
         name     = "alive"
