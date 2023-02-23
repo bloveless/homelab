@@ -11,6 +11,7 @@ job "fabio" {
         static = 9998
       }
     }
+
     task "fabio" {
       driver = "docker"
 
