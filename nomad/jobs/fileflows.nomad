@@ -70,6 +70,10 @@ job "fileflows" {
           cgroup_permissions = "rwm"
         }]
       }
+
+      env {
+        TZ = "America/Los_Angeles"
+      }
       
       volume_mount {
         volume = "fileflows-server-data"
@@ -152,6 +156,7 @@ job "fileflows" {
       env {
         FFNODE = "1"
         ServerUrl = "https://fileflows.lan.brennonloveless.com"
+        TZ = "America/Los_Angeles"
       }
        
       volume_mount {
