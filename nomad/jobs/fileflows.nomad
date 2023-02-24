@@ -105,12 +105,6 @@ job "fileflows" {
   group "fileflows-node" {
     count = 1
 
-    network {
-      port "http" {
-        to = 5000
-      }
-    }
-
     volume "fileflows-node-data" {
       type = "host"
       read_only = false
@@ -135,17 +129,6 @@ job "fileflows" {
       source = "media"
     }
 
-    service {
-      port = "http"
-
-      check {
-        type = "http"
-        path = "/"
-        interval = "10s"
-        timeout = "2s"
-      }
-    }
-
     restart {
       attempts = 10
       interval = "5m"
@@ -158,7 +141,6 @@ job "fileflows" {
 
       config {
         image = "revenz/fileflows:1.0.9"
-        ports = [ "http" ]
         hostname = "fileflows-node"
         devices = [{
           host_path = "/dev/dri"
