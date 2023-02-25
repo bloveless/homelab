@@ -14,6 +14,7 @@ job "fabio" {
 
     task "fabio" {
       driver = "docker"
+      user = "nobody:nobody"
 
       config {
         image = "fabiolb/fabio"

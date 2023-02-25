@@ -10,22 +10,6 @@ job "brennonloveless-com" {
       }
     }
 
-    service {
-      name = "brennonloveless-com-webserver"
-      tags = [
-	    "urlprefix-brennonloveless.com/",
-	    "urlprefix-brennonloveless.lan.brennonloveless.com/"
-	  ]
-      port = "http"
-      check {
-        name     = "alive"
-        type     = "http"
-        path     = "/"
-        interval = "10s"
-        timeout  = "2s"
-      }
-    }
-
     restart {
       attempts = 2
       interval = "30m"
@@ -38,6 +22,22 @@ job "brennonloveless-com" {
       config {
         image = "bloveless/brennonloveless-com:0.2.2"
         ports = ["http"]
+      }
+
+      service {
+        name = "brennonloveless-com-webserver"
+        tags = [
+              "urlprefix-brennonloveless.com/",
+              "urlprefix-brennonloveless.lan.brennonloveless.com/"
+            ]
+        port = "http"
+        check {
+          name     = "alive"
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
       }
     }
   }

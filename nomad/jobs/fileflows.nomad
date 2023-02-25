@@ -35,21 +35,6 @@ job "fileflows" {
       source = "media"
     }
 
-    service {
-      name = "fileflows-server"
-      tags = [
-	"urlprefix-fileflows.lan.brennonloveless.com/"
-      ]
-      port = "http"
-
-      check {
-        type = "http"
-        path = "/"
-        interval = "10s"
-        timeout = "2s"
-      }
-    }
-
     restart {
       attempts = 10
       interval = "5m"
@@ -100,14 +85,35 @@ job "fileflows" {
       }
 
       resources {
-        cpu    = 500
-        memory = 1024
+        cpu    = 4096
+        memory = 4096
+      }
+
+      service {
+        name = "fileflows-server"
+        tags = [
+          "urlprefix-fileflows.lan.brennonloveless.com/"
+        ]
+        port = "http"
+
+        check {
+          type = "http"
+          path = "/"
+          interval = "10s"
+          timeout = "2s"
+        }
       }
     }
   }
 
   group "fileflows-node" {
     count = 1
+
+    network {
+      port "fileflows" {
+        to = 5000
+      }
+    }
 
     volume "fileflows-node-data" {
       type = "host"
@@ -146,6 +152,7 @@ job "fileflows" {
       config {
         image = "revenz/fileflows:1.0.9"
         hostname = "fileflows-node"
+        ports = [ "fileflows" ]
         devices = [{
           host_path = "/dev/dri"
           container_path = "/dev/dri"
@@ -184,8 +191,8 @@ job "fileflows" {
       }
 
       resources {
-        cpu    = 500
-        memory = 1024
+        cpu    = 4096
+        memory = 4096
       }
     }
   }

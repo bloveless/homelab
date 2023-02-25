@@ -17,16 +17,6 @@ job "postgres" {
       source = "postgres-data"
     }
 
-    service {
-      port = "postgres"
-
-      check {
-        type = "tcp"
-        interval = "10s"
-        timeout = "2s"
-      }
-    }
-
     restart {
       attempts = 10
       interval = "5m"
