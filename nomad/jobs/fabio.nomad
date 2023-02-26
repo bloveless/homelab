@@ -12,6 +12,13 @@ job "fabio" {
       }
     }
 
+    restart {
+      attempts = 10
+      interval = "10m"
+      delay    = "30s"
+      mode     = "delay"
+    }
+
     task "fabio" {
       driver = "docker"
       user = "nobody:nobody"

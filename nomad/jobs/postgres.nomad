@@ -19,8 +19,8 @@ job "postgres" {
 
     restart {
       attempts = 10
-      interval = "5m"
-      delay    = "25s"
+      interval = "10m"
+      delay    = "30s"
       mode     = "delay"
     }
 

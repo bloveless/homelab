@@ -1,6 +1,16 @@
-job "brennonloveless-com" {
+job "mediaserver" {
   datacenters = ["homelab01"]
   type = "service"
+
+  # wireguard
+  # netshoot
+  # nzbget
+  # qbittorrent
+  # radarr
+  # sonarr
+  # overseerr
+  # prowlarr
+  # flaresolverr
 
   group "webserver" {
     count = 1
