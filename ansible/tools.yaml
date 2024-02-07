@@ -1,0 +1,53 @@
+- name: Tools config
+  hosts: tools
+  tasks:
+    - name: Install HAProxy
+      package:
+        name: haproxy
+        state: present
+      become: true
+
+    - name: Configure HAProxy
+      template:
+        src: haproxy.cfg.jinja2
+        dest: /etc/haproxy/haproxy.cfg
+      become: true
+
+    - name: Open port
+      ansible.posix.firewalld:
+        port: 6443/tcp
+        permanent: true
+        state: enabled
+      become: true
+
+    - name: SELinux allow kubernetes api on 6443
+      community.general.seport:
+        ports: 6443
+        proto: tcp
+        setype: http_port_t
+        state: present
+      become: true
+
+    - name: Download the cloudflared Linux package
+      get_url: 
+        url: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-x86_64.rpm
+        dest: /tmp/cloudflared-linux-x86_64.rpm
+        checksum: sha256:23016b982085431648ddce9945ae2a12599db90bd8ed299be894984aad2214d7
+
+    - name: Install cloudflared
+      command:
+        cmd: dnf -y install /tmp/cloudflared-linux-x86_64.rpm
+      become: true
+
+    - name: Configure cloudflared service
+      command:
+        cmd: cloudflared service install {{ lookup('env', 'CLOUDFLARED_REFRESH_KEY') }}
+        creates: /etc/systemd/system/cloudflared.service
+      become: true
+
+  roles:
+    - role: artis3n.tailscale
+      vars:
+        # Example pulling the API key from the env vars on the host running Ansible
+        tailscale_authkey: "{{ lookup('env', 'TAILSCALE_KEY') }}"
+        tailscale_args: "--advertise-exit-node --ssh"
