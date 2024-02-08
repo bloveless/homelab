@@ -1,2 +1,6 @@
 *agent.token
 Session.vim
+helm/.terraform
+helm/terraform.tfstate
+helm/terraform.tfstate.backup
+

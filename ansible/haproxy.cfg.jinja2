@@ -61,11 +61,37 @@ defaults
     timeout check           10s
     maxconn                 3000
 
+frontend k8s_ingress_https
+    bind *:8443
+    mode tcp
+    option tcplog
+    default_backend k8s_ingress_https
+
+backend k8s_ingress_https
+    mode tcp
+    balance roundrobin
+{% for i in groups ["talosworker"] %}
+    server talos-w{{loop.index}} {{i}}:8443 # check check-ssl verify none
+{% endfor %}
+
+frontend k8s_ingress_http
+    bind *:8080
+    mode http
+    option httplog
+    default_backend k8s_ingress_http
+
+backend k8s_ingress_http
+    mode http
+    balance roundrobin
+{% for i in groups ["talosworker"] %}
+    server talos-w{{loop.index}} {{i}}:8080
+{% endfor %}
+
 frontend k8s
     bind *:6443
     mode tcp
-    default_backend k8s
     option tcplog
+    default_backend k8s
 
 backend k8s
     mode tcp

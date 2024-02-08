@@ -1,0 +1,3 @@
+apiVersion: v2
+name: haproxy-example
+version: 0.1.1

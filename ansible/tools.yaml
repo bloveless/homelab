@@ -13,7 +13,27 @@
         dest: /etc/haproxy/haproxy.cfg
       become: true
 
-    - name: Open port
+    - name: Start HAProxy service
+      service:
+        name: haproxy
+        state: restarted
+      become: true
+
+    - name: Open ssl port
+      ansible.posix.firewalld:
+        port: 8443/tcp
+        permanent: true
+        state: enabled
+      become: true
+
+    - name: Open http port
+      ansible.posix.firewalld:
+        port: 8080/tcp
+        permanent: true
+        state: enabled
+      become: true
+
+    - name: Open k8s api port
       ansible.posix.firewalld:
         port: 6443/tcp
         permanent: true
@@ -23,6 +43,22 @@
     - name: SELinux allow kubernetes api on 6443
       community.general.seport:
         ports: 6443
+        proto: tcp
+        setype: http_port_t
+        state: present
+      become: true
+
+    - name: SELinux allow https on 8443
+      community.general.seport:
+        ports: 8443
+        proto: tcp
+        setype: http_port_t
+        state: present
+      become: true
+
+    - name: SELinux allow http on 8080
+      community.general.seport:
+        ports: 8080
         proto: tcp
         setype: http_port_t
         state: present
