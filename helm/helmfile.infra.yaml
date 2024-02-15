@@ -1,0 +1,46 @@
+repositories:
+- name: cilium
+  url: https://helm.cilium.io/
+- name: projectcontour
+  url: https://charts.bitnami.com/bitnami
+- name: onepassword
+  url: https://1password.github.io/connect-helm-charts
+  
+releases:
+- name: metallb
+  chart: ./charts/metallb
+  namespace: metallb-system
+
+- name: projectcontour
+  chart: projectcontour/contour
+  namespace: projectcontour
+
+# Run the following command manually first
+# kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.crds.yaml
+- name: cert-manager
+  chart: ./charts/cert-manager
+  namespace: cert-manager
+  createNamespace: true
+
+- name: onepassword-connect
+  chart: onepassword/connect
+  namespace: onepassword
+  createNamespace: true
+
+  values:
+    - connect:
+        serviceType: ClusterIP
+
+      operator:
+        create: true
+        autoRestart: true
+
+- name: monitoring
+  chart: ./charts/monitoring
+  namespace: monitoring
+
+  values:
+    - grafanaCloud:
+        username: {{ requiredEnv "GRAFANA_CLOUD_USERNAME" }}
+        password: {{ requiredEnv "GRAFANA_CLOUD_PASSWORD"}}
+        host: {{ requiredEnv "GRAFANA_CLOUD_HOST" }}

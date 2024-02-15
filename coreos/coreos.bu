@@ -1,8 +1,0 @@
-variant: fcos
-version: 1.4.0
-passwd:
-  users:
-    - name: core
-      ssh_authorized_keys:
-        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINf6kijsnbx9rJOtxu6pNUgnZOBNK+GqSIHaZEo3IT8Q brennon@Brennons-MacBook-Pro.local
-

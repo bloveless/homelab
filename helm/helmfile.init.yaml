@@ -1,0 +1,40 @@
+releases:
+# https://www.talos.dev/v1.6/kubernetes-guides/network/deploying-cilium/
+# - name: cilium
+#   chart: cilium/cilium
+#   namespace: kube-system
+#   version: 1.14.0
+#   values:
+#     - ipam:
+#         mode: kubernetes
+# 
+#       kubeProxyReplacement: disabled
+# 
+#       securityContext:
+#         capabilities:
+#           ciliumAgent: 
+#             - CHOWN
+#             - KILL
+#             - NET_ADMIN
+#             - NET_RAW
+#             - IPC_LOCK
+#             - SYS_ADMIN
+#             - SYS_RESOURCE
+#             - DAC_OVERRIDE
+#             - FOWNER
+#             - SETGID
+#             - SETUID
+#           cleanCiliumState:
+#             - NET_ADMIN
+#             - SYS_ADMIN
+#             - SYS_RESOURCE
+# 
+#       cgroup:
+#         autoMount:
+#           enabled: false
+#         hostRoot: /sys/fs/cgroup
+
+- name: cluster-config
+  chart: ./charts/cluster-config
+  # this namespace shouldn't matter since this whole chart is for setting up other namespaces
+  namespace: default

@@ -1,12 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: example-ingress
+  name: brennonloveless
   annotations:
-    # add an annotation indicating the issuer to use.
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  ingressClassName: haproxy
+  ingressClassName: contour
   rules:
   - host: "brennonloveless.com"
     http:
@@ -15,9 +14,9 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: example-service
+            name: brennonloveless
             port:
-              number: 8080
+              number: 80
   tls:
   - hosts:
     - brennonloveless.com

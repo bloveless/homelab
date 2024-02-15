@@ -2,27 +2,30 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    run: app
-  name: app
+    component: brennonloveless
+    layer: service
+  name: brennonloveless
 spec:
   replicas: 1
   selector:
     matchLabels:
-      run: app
+      component: brennonloveless
+      layer: service
   template:
     metadata:
       labels:
-        run: app
+        component: brennonloveless
+        layer: service
     spec:
       containers:
-      - name: app
-        image: jmalloc/echo-server
+      - name: brennonloveless
+        image: bloveless/brennonloveless-com:{{ .Values.ImageTag }}
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         readinessProbe:
           httpGet:
             path: /
-            port: 8080
+            port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
           successThreshold: 1

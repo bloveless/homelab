@@ -1,0 +1,16 @@
+repositories: []
+
+helmfiles:
+  - path: ./helmfile.init.yaml
+  - path: ./helmfile.infra.yaml
+
+releases:
+- name: httpbin
+  chart: ./charts/httpbin
+  namespace: httpbin
+  createNamespace: true
+
+- name: brennonloveless
+  chart: ./charts/brennonloveless
+  namespace: brennonloveless
+  createNamespace: true

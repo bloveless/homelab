@@ -1,0 +1,7 @@
+# Using grafana and loki cloud instead of self hosting since it is free
+
+grafanaCloud:
+  username: username
+  password: password
+  host: your-host.grafana.net
+

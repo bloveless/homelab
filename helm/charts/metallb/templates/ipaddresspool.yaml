@@ -1,0 +1,7 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: normal
+spec:
+  addresses:
+  - 192.168.150.10-192.168.150.254
