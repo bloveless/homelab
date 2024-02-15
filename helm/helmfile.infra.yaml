@@ -44,3 +44,8 @@ releases:
         username: {{ requiredEnv "GRAFANA_CLOUD_USERNAME" }}
         password: {{ requiredEnv "GRAFANA_CLOUD_PASSWORD"}}
         host: {{ requiredEnv "GRAFANA_CLOUD_HOST" }}
+
+- name: local-path-storage
+  chart: ./charts/local-path-storage
+  namespace: local-path-storage
+

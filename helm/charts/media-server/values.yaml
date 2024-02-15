@@ -1,0 +1,39 @@
+bazarr:
+  enabled: false
+  image: linuxserver/bazarr:1.4.1
+
+flaresolverr:
+  enabled: false
+  image: flaresolverr/flaresolverr:v3.3.13
+
+jackett:
+  enabled: false
+  image: linuxserver/jackett:0.21.1750
+
+nzbget:
+  enabled: false
+  image: linuxserver/nzbget:21.1.20230119
+
+overseerr:
+  enabled: false
+  image: sctx/overseerr:1.33.2
+
+prowlarr:
+  enabled: false
+  image: linuxserver/prowlarr:1.13.3
+
+qbittorrent:
+  enabled: false
+  image: linuxserver/qbittorrent:4.6.3
+
+radarr:
+  enabled: true
+  image: linuxserver/radarr:5.2.6
+
+sonarr:
+  enabled: true
+  image: linuxserver/sonarr:4.0.1
+
+wireguard:
+  enabled: false
+  image: bloveless/wireguard-dnsmasq:0.3.11

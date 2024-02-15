@@ -1,0 +1,26 @@
+{{ if .Values.wireguard.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wireguard-only
+spec:
+  endpointSelector:
+    matchLabels:
+      role: requires-wireguard
+  ingress:
+  - fromEntities:
+    - cluster
+  - fromCIDR:
+    - 192.168.0.0/16
+  egress:
+  - toCIDR:
+    - 192.168.0.0/16
+  - toEntities:
+    - cluster
+  - toEntities:
+    - world
+    toPorts:
+    - ports:
+      - port: "9929"
+        protocol: UDP
+{{ end }}

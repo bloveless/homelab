@@ -1,0 +1,154 @@
+{{ if .Values.nzbget.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-server-nzbget-config
+  labels:
+    type: local
+    app: media-server
+    component: nzbget
+    volume: config
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 192.168.0.115
+    path: /volume1/homelab/media-server/nzbget/config
+  mountOptions:
+    - soft
+    - nfsvers=4.1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nzbget-config
+spec:
+  storageClassName: manual
+  selector:
+    matchLabels:
+      app: media-server
+      component: nzbget
+      volume: config
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nzbget
+spec:
+  selector:
+    app: media-server
+    component: nzbget
+  ports:
+    - name: webui
+      port: 6789
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nzbget
+  labels:
+    app: media-server
+    component: nzbget
+spec:
+  ingressClassName: contour
+  rules:
+  - host: nzbget.lan
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: nzbget
+              port:
+                number: 6789
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nzbget
+  labels:
+    app: media-server
+    component: nzbget
+    role: requires-wireguard
+spec:
+  selector:
+    matchLabels:
+      app: media-server
+      component: nzbget
+  template:
+    metadata:
+      labels:
+        app: media-server
+        component: nzbget
+        role: requires-wireguard
+    spec:
+      containers:
+      - name: nzbget
+        image: nzbget
+        resources:
+          limits:
+            memory: "500Mi"
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        ports:
+        - name: webui
+          containerPort: 6789
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: downloads
+          mountPath: /downloads
+      - name: wireguard
+        image: wireguard
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        env:
+          - name: KILLSWITCH
+            value: "true"
+          - name: KILLSWITCH_EXCLUDEDNETWORKS_IPV4
+            value: "10.0.0.0/8 192.168.0.0/16"
+          - name: DNS_LOCAL_CIDRS
+            value: "local"
+        volumeMounts:
+        - name: vpnconfig
+          mountPath: /etc/wireguard/wg0.conf
+          subPath: vpnConfigfile
+        - name: scripts
+          mountPath: /config/up.sh
+          subPath: up.sh
+        - name: scripts
+          mountPath: /config/down.sh
+          subPath: down.sh
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: nzbget-config
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: plex-data
+      - name: vpnconfig
+        secret:
+          secretName: wireguard-config-la-nzbget
+      - name: scripts
+        configMap:
+          defaultMode: 0555
+          name: wireguard-scripts
+{{ end }}

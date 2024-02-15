@@ -1,0 +1,180 @@
+{{ if .Values.qbittorrent.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-server-qbittorrent-config
+  labels:
+    type: local
+    app: media-server
+    component: qbittorrent
+    volume: config
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 192.168.0.115
+    path: /volume1/homelab/media-server/qbittorrent/config
+  mountOptions:
+    - soft
+    - nfsvers=4.1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbittorrent-config
+spec:
+  storageClassName: manual
+  selector:
+    matchLabels:
+      app: media-server
+      component: qbittorrent
+      volume: config
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-tcp
+spec:
+  selector:
+    app: media-server
+    component: qbittorrent
+  ports:
+    - name: webui
+      port: 8080
+    - name: incoming-tcp
+      port: 6881
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-udp
+spec:
+  selector:
+    app: media-server
+    component: qbittorrent
+  ports:
+    - name: incoming-udp
+      port: 6881
+      protocol: UDP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent
+  labels:
+    app: media-server
+    component: qbittorrent-ingress
+spec:
+  ingressClassName: contour
+  rules:
+  - host: qbittorrent.lan
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: qbittorrent-tcp
+              port:
+                number: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  labels:
+    app: media-server
+    component: qbittorrent
+    role: requires-wireguard
+spec:
+  selector:
+    matchLabels:
+      app: media-server
+      component: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: media-server
+        component: qbittorrent
+        role: requires-wireguard
+    spec:
+      hostname: media-server-torrent-downloader-1
+      containers:
+      - name: qbittorrent
+        image: qbittorrent
+        resources:
+          limits:
+            memory: "500Mi"
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Los_Angeles"
+        ports:
+        - name: webui
+          containerPort: 8080
+        - name: forwarded-port
+          containerPort: 50274
+        - name: incoming-tcp
+          containerPort: 6881
+          protocol: TCP
+        - name: incoming-udp
+          containerPort: 6881
+          protocol: UDP
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: downloads
+          mountPath: /downloads
+      - name: wireguard
+        image: wireguard
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        env:
+          - name: KILLSWITCH
+            value: "true"
+          - name: KILLSWITCH_EXCLUDEDNETWORKS_IPV4
+            value: "10.0.0.0/8 192.168.0.0/16"
+          - name: DNS_LOCAL_CIDRS
+            value: "local"
+        volumeMounts:
+        - name: vpnconfig
+          mountPath: /etc/wireguard/wg0.conf
+          subPath: vpnConfigfile
+        - name: scripts
+          mountPath: /config/up.sh
+          subPath: up.sh
+        - name: scripts
+          mountPath: /config/down.sh
+          subPath: down.sh
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: qbittorrent-config
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: plex-data
+      - name: vpnconfig
+        secret:
+          secretName: wireguard-config-la-qbittorrent
+      - name: scripts
+        configMap:
+          defaultMode: 0555
+          name: wireguard-scripts
+{{ end }}
