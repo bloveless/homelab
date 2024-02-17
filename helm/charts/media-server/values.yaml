@@ -1,23 +1,3 @@
-bazarr:
-  enabled: false
-  image: linuxserver/bazarr:1.4.1
-
-flaresolverr:
-  enabled: false
-  image: flaresolverr/flaresolverr:v3.3.13
-
-jackett:
-  enabled: false
-  image: linuxserver/jackett:0.21.1750
-
-nzbget:
-  enabled: false
-  image: linuxserver/nzbget:21.1.20230119
-
-sabnzbd:
-  enabled: true
-  image: linuxserver/sabnzbd:4.2.2
-
 overseerr:
   enabled: true
   image: sctx/overseerr:1.33.2
@@ -33,6 +13,10 @@ qbittorrent:
 radarr:
   enabled: true
   image: linuxserver/radarr:5.2.6
+
+sabnzbd:
+  enabled: true
+  image: linuxserver/sabnzbd:4.2.2
 
 sonarr:
   enabled: true
