@@ -1,13 +1,53 @@
-{{ if .Values.qbittorrent.enabled }}
+{{ if .Values.sabnzbd.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: media-server-qbittorrent-config
+  name: media-server-sabnzbd-backups
   labels:
     type: local
     app: media-server
-    component: qbittorrent
+    component: sabnzbd
+    volume: backups
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 192.168.0.115
+    path: /volume1/homelab/media-server/sabnzbd/backups
+  mountOptions:
+    - soft
+    - nfsvers=4.1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sabnzbd-backups
+spec:
+  storageClassName: manual
+  selector:
+    matchLabels:
+      app: media-server
+      component: sabnzbd
+      volume: backups
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-server-sabnzbd-config
+  labels:
+    type: local
+    app: media-server
+    component: sabnzbd
     volume: config
 spec:
   storageClassName: manual
@@ -17,7 +57,7 @@ spec:
     - ReadWriteOnce
   nfs:
     server: 192.168.0.115
-    path: /volume1/homelab/media-server/qbittorrent/data
+    path: /volume1/homelab/media-server/sabnzbd/data
   mountOptions:
     - soft
     - nfsvers=4.1
@@ -26,94 +66,78 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: qbittorrent-config
+  name: sabnzbd-config
 spec:
   storageClassName: manual
   selector:
     matchLabels:
       app: media-server
-      component: qbittorrent
+      component: sabnzbd
       volume: config
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
----
 
+---
 apiVersion: onepassword.com/v1
 kind: OnePasswordItem
 metadata:
-  name: qbittorrent-wireguard-config
-  namespace: media-server
+  name: sabnzbd-wireguard-config
 spec:
-  itemPath: "vaults/Homelab/items/Qbittorrent Wireguard Config"
+  itemPath: "vaults/Homelab/items/Sabnzbd Wireguard Config"
+
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: qbittorrent-tcp
+  name: sabnzbd
 spec:
   selector:
     app: media-server
-    component: qbittorrent
+    component: sabnzbd
   ports:
-    - name: webui
+    - name: http
       port: 8080
-    - name: incoming-tcp
-      port: 6881
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: qbittorrent-udp
-spec:
-  selector:
-    app: media-server
-    component: qbittorrent
-  ports:
-    - name: incoming-udp
-      port: 6881
-      protocol: UDP
 ---
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: qbittorrent
+  name: sabnzbd
   labels:
     app: media-server
-    component: qbittorrent-ingress
+    component: sabnzbd-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: contour
   rules:
-    - host: qbittorrent.lan.brennonloveless.com
+    - host: sabnzbd.lan.brennonloveless.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: qbittorrent-tcp
+                name: sabnzbd
                 port:
                   number: 8080
   tls:
-  - hosts:
-    - qbittorrent.lan.brennonloveless.com
-    secretName: qbittorrent-cert
+    - hosts:
+      - sabnzbd.lan.brennonloveless.com
+      secretName: sabnzbd-cert
 ---
 
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: qbittorrent
+  name: sabnzbd
   labels:
     app: media-server
-    component: qbittorrent
+    component: sabnzbd
 spec:
   replicas: 1
   strategy:
@@ -121,43 +145,29 @@ spec:
   selector:
     matchLabels:
       app: media-server
-      component: qbittorrent
+      component: sabnzbd
   template:
     metadata:
       labels:
         app: media-server
-        component: qbittorrent
+        component: sabnzbd
     spec:
-      hostname: media-server-torrent-downloader-1
       containers:
-      - name: qbittorrent
-        image: {{ .Values.qbittorrent.image }}
-        resources:
-          limits:
-            memory: "500Mi"
+      - name: sabnzbd
+        image: {{ .Values.sabnzbd.image }}
         env:
-        - name: PUID
-          value: "1000"
-        - name: PGID
-          value: "1000"
         - name: TZ
           value: "America/Los_Angeles"
         ports:
-          - name: webui
+          - name: http
             containerPort: 8080
-          - name: forwarded-port
-            containerPort: 50274
-          - name: incoming-tcp
-            containerPort: 6881
-            protocol: TCP
-          - name: incoming-udp
-            containerPort: 6881
-            protocol: UDP
         volumeMounts:
           - name: config
             mountPath: /config
           - name: downloads
             mountPath: /downloads
+          - name: backups
+            mountPath: /backups
       - name: wireguard
         image: {{ .Values.wireguard.image }}
         securityContext:
@@ -170,11 +180,16 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: qbittorrent-config
+            claimName: sabnzbd-config
         - name: downloads
           persistentVolumeClaim:
             claimName: plex-data
         - name: wireguardconfig
           secret:
-            secretName: qbittorrent-wireguard-config
+            secretName: sabnzbd-wireguard-config
+        - name: backups
+          persistentVolumeClaim:
+            claimName: sabnzbd-backups
+---
 {{ end }}
+

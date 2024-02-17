@@ -1,10 +1,11 @@
 {{ if .Values.jackett.enabled }}
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: media-server-jackett-downloads
   labels:
-    type: local
+    type: remote
     app: media-server
     component: jackett
     volume: downloads
@@ -16,7 +17,7 @@ spec:
     - ReadWriteOnce
   nfs:
     server: 192.168.0.115
-    path: /volume1/homelab/media-server/jackett/storage
+    path: /volume1/homelab/media-server/jackett/data
   mountOptions:
     - soft
     - nfsvers=4.1
@@ -26,7 +27,7 @@ kind: PersistentVolume
 metadata:
   name: media-server-jackett-config
   labels:
-    type: local
+    type: remote
     app: media-server
     component: jackett
     volume: config
@@ -136,7 +137,7 @@ spec:
     spec:
       containers:
       - name: jackett
-        image: jackett
+        image:  {{ .Values.jackett.image }}
         env:
         - name: TZ
           value: "America/Los_Angeles"

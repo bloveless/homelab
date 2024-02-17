@@ -5,7 +5,7 @@ kind: PersistentVolume
 metadata:
   name: media-server-nzbget-config
   labels:
-    type: local
+    type: remote
     app: media-server
     component: nzbget
     volume: config
@@ -17,7 +17,7 @@ spec:
     - ReadWriteOnce
   nfs:
     server: 192.168.0.115
-    path: /volume1/homelab/media-server/nzbget/config
+    path: /volume1/homelab/media-server/nzbget/data
   mountOptions:
     - soft
     - nfsvers=4.1
@@ -59,10 +59,12 @@ metadata:
   labels:
     app: media-server
     component: nzbget
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: contour
   rules:
-  - host: nzbget.lan
+  - host: nzbget.lan.brennonloveless.com
     http:
       paths:
         - path: /
@@ -72,6 +74,10 @@ spec:
               name: nzbget
               port:
                 number: 6789
+  tls:
+  - hosts:
+    - nzbget.lan.brennonloveless.com
+    secretName: nzbget-cert
 
 ---
 apiVersion: apps/v1
@@ -96,7 +102,7 @@ spec:
     spec:
       containers:
       - name: nzbget
-        image: nzbget
+        image: {{ .Values.nzbget.image }}
         resources:
           limits:
             memory: "500Mi"
@@ -146,7 +152,7 @@ spec:
           claimName: plex-data
       - name: vpnconfig
         secret:
-          secretName: wireguard-config-la-nzbget
+          secretName: wireguard-config-nzbget
       - name: scripts
         configMap:
           defaultMode: 0555

@@ -18,4 +18,3 @@ releases:
 - name: media-server
   chart: ./charts/media-server
   namespace: media-server
-  createNamespace: true

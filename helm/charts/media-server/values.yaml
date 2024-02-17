@@ -14,16 +14,20 @@ nzbget:
   enabled: false
   image: linuxserver/nzbget:21.1.20230119
 
+sabnzbd:
+  enabled: true
+  image: linuxserver/sabnzbd:4.2.2
+
 overseerr:
-  enabled: false
+  enabled: true
   image: sctx/overseerr:1.33.2
 
 prowlarr:
-  enabled: false
+  enabled: true
   image: linuxserver/prowlarr:1.13.3
 
 qbittorrent:
-  enabled: false
+  enabled: true
   image: linuxserver/qbittorrent:4.6.3
 
 radarr:
@@ -35,5 +39,4 @@ sonarr:
   image: linuxserver/sonarr:4.0.1
 
 wireguard:
-  enabled: false
-  image: bloveless/wireguard-dnsmasq:0.3.11
+  image: linuxserver/wireguard:1.0.20210914

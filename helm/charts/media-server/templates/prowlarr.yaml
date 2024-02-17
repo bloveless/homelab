@@ -75,10 +75,11 @@ metadata:
     component: prowlarr
   annotations:
     projectcontour.io/response-timeout: "2m"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: contour
   rules:
-  - host: prowlarr.lan
+  - host: prowlarr.lan.brennonloveless.com
     http:
       paths:
       - path: /
@@ -88,6 +89,10 @@ spec:
             name: prowlarr
             port:
               number: 9696
+  tls:
+  - hosts:
+    - prowlarr.lan.brennonloveless.com
+    secretName: prowlarr-cert
 
 ---
 apiVersion: apps/v1
@@ -112,7 +117,7 @@ spec:
     spec:
       containers:
       - name: prowlarr
-        image: prowlarr
+        image: {{ .Values.prowlarr.image }}
         env:
         - name: TZ
           value: "America/Los_Angeles"

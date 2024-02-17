@@ -1,8 +1,9 @@
 {{ if .Values.overseerr.enabled }}
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: media-server-overseerr-config
+  name: media-server-overseerr-data
   labels:
     type: local
     app: media-server
@@ -16,7 +17,7 @@ spec:
     - ReadWriteOnce
   nfs:
     server: 192.168.0.115
-    path: /volume1/homelab/media-server/overseerr/config
+    path: /volume1/homelab/media-server/overseerr/data
   mountOptions:
     - soft
     - nfsvers=4.1
@@ -66,7 +67,7 @@ spec:
   tls:
   - hosts:
     - overseerr.brennonloveless.com
-    secretName: overseerr-tls
+    secretName: overseerr-cert
   rules:
   - host: overseerr.brennonloveless.com
     http:
@@ -100,7 +101,7 @@ spec:
     spec:
       containers:
       - name: overseerr
-        image: overseerr
+        image: {{ .Values.overseerr.image }}
         env:
         - name: TZ
           value: "America/Los_Angeles"
