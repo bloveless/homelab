@@ -18,3 +18,8 @@ releases:
 - name: media-server
   chart: ./charts/media-server
   namespace: media-server
+
+- name: homelab-exporter
+  chart: ./charts/homelab-exporter
+  namespace: homelab-exporter
+  createNamespace: true

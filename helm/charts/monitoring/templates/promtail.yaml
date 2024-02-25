@@ -5,16 +5,16 @@ apiVersion: v1
 data:
   promtail.yml: |
     scrape_configs:
-    - pipeline_stages:
-      - cri: {}
-      job_name: auditlogs
-      static_configs:
-      - targets:
-        - localhost
-        labels:
-          job: auditlogs
-          host: ${HOSTNAME}
-          __path__: /var/log/audit/kube/*.log
+    # - pipeline_stages:
+    #   - cri: {}
+    #   job_name: auditlogs
+    #   static_configs:
+    #   - targets:
+    #     - localhost
+    #     labels:
+    #       job: auditlogs
+    #       host: ${HOSTNAME}
+    #       __path__: /var/log/audit/kube/*.log
     - pipeline_stages:
       - cri: {}
       job_name: kubernetes-pods-name
