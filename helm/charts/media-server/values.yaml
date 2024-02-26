@@ -24,3 +24,7 @@ sonarr:
 
 wireguard:
   image: linuxserver/wireguard:1.0.20210914
+
+flaresolverr:
+  enabled: true
+  image: flaresolverr/flaresolverr:v3.3.15

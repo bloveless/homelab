@@ -1,102 +1,86 @@
 # Using grafana and loki cloud instead of self hosting since it is free
 
 grafanaCloud:
-  username: username
-  password: password
-  host: your-host.grafana.net
+  enabled: false
+#   username: username
+#   password: password
+#   host: your-host.grafana.net
 
 
-loki-stack:
-  grafana:
+grafana:
+  initChownData:
+    enabled: false
+
+  ingress:
     enabled: true
 
-    initChownData:
-      enabled: false
+    ingressClassName: contour
 
-    ingress:
-      enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
 
-      ingressClassName: contour
+    hosts:
+      - grafana.brennonloveless.com
 
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-
-      hosts:
-        - grafana.brennonloveless.com
-
-      tls:
-        - secret-name: grafana-cert
-          hosts:
-            - grafana.brennonloveless.com
-
-
-    persistence:
-      enabled: true
-      storageClassName: local-path
-
-      size: 10Gi
-
-  loki:
-    ingress:
-      enabled: true
-
-      ingressClassName: contour
-
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-
-      hosts:
-        - host: loki.lan.brennonloveless.com
-          paths:
-            - /
-
-      tls:
-        - secretName: loki-cert
-          hosts:
-            - loki.lan.brennonloveless.com
-
-    persistence:
-      enabled: true
-
-      size: 10Gi
-
-      storageClassName: manual
-
-      selector:
-        matchLabels:
-          app: monitoring
-          component: loki
-          volume: data
-
-  promtail:
-    config:
-      clients:
-        - url: http://monitoring-loki:3100/loki/api/v1/push
-
-  prometheus:
-    enabled: true
-
-    alertmanager:
-      enabled: false
-
-    server:
-      ingress:
-        enabled: true
-
-        ingressClassName: contour
-
-        annotations:
-          cert-manager.io/cluster-issuer: letsencrypt-prod
-
+    tls:
+      - secret-name: grafana-cert
         hosts:
-          - prometheus.lan.brennonloveless.com
+          - grafana.brennonloveless.com
 
-        tls:
-          - secretName: prometheus-cert
-            hosts:
-              - prometheus.lan.brennonloveless.com
+  persistence:
+    enabled: true
+    storageClassName: local-path
 
-      persistentVolume:
-        storageClass: local-path
+    size: 10Gi
 
-        size: 10Gi
+loki:
+  loki:
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: 'filesystem'
+
+  monitoring:
+    lokiCanary:
+      enabled: false
+
+  test:
+    enabled: false
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      storageClass: local-path
+      size: 10Gi
+
+promtail:
+  config:
+    clients:
+      - url: http://monitoring-loki:3100/loki/api/v1/push
+        tenant_id: brennonloveless
+
+prometheus:
+  alertmanager:
+    enabled: false
+
+  server:
+    ingress:
+      enabled: true
+
+      ingressClassName: contour
+
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+
+      hosts:
+        - prometheus.lan.brennonloveless.com
+
+      tls:
+        - secretName: prometheus-cert
+          hosts:
+            - prometheus.lan.brennonloveless.com
+
+    persistentVolume:
+      storageClass: local-path
+
+      size: 10Gi
