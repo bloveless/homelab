@@ -96,3 +96,26 @@
           - --token
           - "{{ lookup('ansible.builtin.env', 'CLOUDFLARED_REFRESH_KEY') }}"
 
+    - name: Add kubernetes repo
+      copy:
+        src: ./kubernetes.repo
+        dest: /etc/yum.repos.d/kubernetes.repo
+
+    - name: Install kubectl
+      dnf:
+        state: latest
+        name:
+          - kubectl
+
+    - name: Make kubeconfig directory
+      file:
+        path: /home/brennon/.kube
+        state: directory
+        owner: brennon
+        group: brennon
+
+    - name: Copy kubeconfig
+      copy:
+        src: ~/.kube/config
+        dest: /home/brennon/.kube/config
+
