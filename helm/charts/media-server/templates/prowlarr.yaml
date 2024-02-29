@@ -155,8 +155,6 @@ spec:
               secretKeyRef:
                 name: prowlarr-api-key
                 key: api_key
-          - name: PROWLARR_BACKFILL
-            value: "true"
         ports:
           - name: monitoring
             containerPort: 9707
