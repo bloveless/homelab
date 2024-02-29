@@ -12,7 +12,7 @@ qbittorrent:
 
 radarr:
   enabled: true
-  image: linuxserver/radarr:5.2.6
+  image: linuxserver/radarr:5.3.6
 
 sabnzbd:
   enabled: true
@@ -20,7 +20,7 @@ sabnzbd:
 
 sonarr:
   enabled: true
-  image: linuxserver/sonarr:4.0.1
+  image: linuxserver/sonarr:4.0.2
 
 wireguard:
   image: linuxserver/wireguard:1.0.20210914
@@ -28,3 +28,7 @@ wireguard:
 flaresolverr:
   enabled: true
   image: flaresolverr/flaresolverr:v3.3.15
+
+exportarr:
+  enabled: true
+  image: ghcr.io/onedr0p/exportarr:v1.6.1

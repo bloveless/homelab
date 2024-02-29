@@ -95,6 +95,14 @@ spec:
     secretName: prowlarr-cert
 
 ---
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: prowlarr-api-key
+spec:
+  itemPath: "vaults/Homelab/items/Prowlarr"
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -114,6 +122,9 @@ spec:
       labels:
         app: media-server
         component: prowlarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "monitoring"
     spec:
       containers:
       - name: prowlarr
@@ -129,6 +140,46 @@ spec:
           mountPath: /config
         - name: backups
           mountPath: /backups
+      {{- if .Values.exportarr.enabled }}
+      - name: exportarr
+        image: {{ .Values.exportarr.image }}
+        args:
+          - prowlarr
+        env:
+          - name: PORT
+            value: "9707"
+          - name: URL
+            value: "http://localhost:9696"
+          - name: APIKEY
+            valueFrom:
+              secretKeyRef:
+                name: prowlarr-api-key
+                key: api_key
+          - name: PROWLARR_BACKFILL
+            value: "true"
+        ports:
+          - name: monitoring
+            containerPort: 9707
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: monitoring
+          failureThreshold: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: monitoring
+          failureThreshold: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+      {{- end }}
       volumes:
       - name: config
         persistentVolumeClaim:

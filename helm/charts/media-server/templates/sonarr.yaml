@@ -96,6 +96,14 @@ spec:
     secretName: sonarr-cert
 
 ---
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: sonarr-api-key
+spec:
+  itemPath: "vaults/Homelab/items/Sonarr"
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -115,6 +123,9 @@ spec:
       labels:
         app: media-server
         component: sonarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "monitoring"
     spec:
       containers:
       - name: sonarr
@@ -132,6 +143,44 @@ spec:
           mountPath: /backups
         - name: downloads
           mountPath: /downloads
+      {{- if .Values.exportarr.enabled }}
+      - name: exportarr
+        image: {{ .Values.exportarr.image }}
+        args:
+          - sonarr
+        env:
+          - name: PORT
+            value: "9707"
+          - name: URL
+            value: "http://localhost:8989"
+          - name: APIKEY
+            valueFrom:
+              secretKeyRef:
+                name: sonarr-api-key
+                key: api_key
+        ports:
+          - name: monitoring
+            containerPort: 9707
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: monitoring
+          failureThreshold: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: monitoring
+          failureThreshold: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+      {{- end }}
       volumes:
       - name: config
         persistentVolumeClaim:

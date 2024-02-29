@@ -39,11 +39,11 @@ releases:
   chart: ./charts/monitoring
   namespace: monitoring
 
-  values:
-    - grafanaCloud:
-        username: {{ requiredEnv "GRAFANA_CLOUD_USERNAME" }}
-        password: {{ requiredEnv "GRAFANA_CLOUD_PASSWORD"}}
-        host: {{ requiredEnv "GRAFANA_CLOUD_HOST" }}
+  # values:
+  #   - grafanaCloud:
+  #       username: {{/* requiredEnv "GRAFANA_CLOUD_USERNAME" */}}
+  #       password: {{/* requiredEnv "GRAFANA_CLOUD_PASSWORD" */}}
+  #       host: {{/* requiredEnv "GRAFANA_CLOUD_HOST" */}}
 
 - name: local-path-storage
   chart: ./charts/local-path-storage

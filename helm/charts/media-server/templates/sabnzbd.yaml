@@ -39,7 +39,6 @@ spec:
     requests:
       storage: 1G
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -62,7 +61,6 @@ spec:
     - soft
     - nfsvers=4.1
 ---
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -89,7 +87,6 @@ spec:
   itemPath: "vaults/Homelab/items/Sabnzbd Wireguard Config"
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -102,7 +99,6 @@ spec:
     - name: http
       port: 8080
 ---
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -127,10 +123,18 @@ spec:
                   number: 8080
   tls:
     - hosts:
-      - sabnzbd.lan.brennonloveless.com
+        - sabnzbd.lan.brennonloveless.com
       secretName: sabnzbd-cert
----
 
+---
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: sabnzbd-api-key
+spec:
+  itemPath: "vaults/Homelab/items/Sabnzbd"
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -151,32 +155,73 @@ spec:
       labels:
         app: media-server
         component: sabnzbd
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "monitoring"
     spec:
       containers:
-      - name: sabnzbd
-        image: {{ .Values.sabnzbd.image }}
-        env:
-        - name: TZ
-          value: "America/Los_Angeles"
-        ports:
-          - name: http
-            containerPort: 8080
-        volumeMounts:
-          - name: config
-            mountPath: /config
-          - name: downloads
-            mountPath: /downloads
-          - name: backups
-            mountPath: /backups
-      - name: wireguard
-        image: {{ .Values.wireguard.image }}
-        securityContext:
-          capabilities:
-            add:
-              - NET_ADMIN
-        volumeMounts:
-          - name: wireguardconfig
-            mountPath: /config/wg_confs
+        - name: sabnzbd
+          image: {{ .Values.sabnzbd.image }}
+          env:
+            - name: TZ
+              value: "America/Los_Angeles"
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+            - name: backups
+              mountPath: /backups
+        - name: wireguard
+          image: {{ .Values.wireguard.image }}
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          volumeMounts:
+            - name: wireguardconfig
+              mountPath: /config/wg_confs
+        {{- if .Values.exportarr.enabled }}
+        - name: exportarr
+          image: {{ .Values.exportarr.image }}
+          args:
+            - sabnzbd
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: "http://localhost:8080"
+            - name: APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: sabnzbd-api-key
+                  key: api_key
+          ports:
+            - name: monitoring
+              containerPort: 9707
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: monitoring
+            failureThreshold: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: monitoring
+            failureThreshold: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+        {{- end }}
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -192,4 +237,3 @@ spec:
             claimName: sabnzbd-backups
 ---
 {{ end }}
-

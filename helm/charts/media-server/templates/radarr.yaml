@@ -96,6 +96,14 @@ spec:
     secretName: radarr-cert
 
 ---
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: radarr-api-key
+spec:
+  itemPath: "vaults/Homelab/items/Radarr"
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -115,6 +123,9 @@ spec:
       labels:
         app: media-server
         component: radarr
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "monitoring"
     spec:
       containers:
       - name: radarr
@@ -132,6 +143,44 @@ spec:
           mountPath: /backups
         - name: downloads
           mountPath: /downloads
+      {{- if .Values.exportarr.enabled }}
+      - name: exportarr
+        image: {{ .Values.exportarr.image }}
+        args:
+          - radarr
+        env:
+          - name: PORT
+            value: "9707"
+          - name: URL
+            value: "http://localhost:7878"
+          - name: APIKEY
+            valueFrom:
+              secretKeyRef:
+                name: radarr-api-key
+                key: api_key
+        ports:
+          - name: monitoring
+            containerPort: 9707
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: monitoring
+          failureThreshold: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: monitoring
+          failureThreshold: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+      {{- end }}
       volumes:
       - name: config
         persistentVolumeClaim:
