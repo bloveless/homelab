@@ -1,4 +1,5 @@
 {{ if .Values.grafanaCloud.enabled }}
+---
 # Original came from https://grafana.com/orgs/bloveless/hosted-logs/811001#sending-logs
 # Added another pipeline_stage, security context, volumes, volume mounts, and scrape config from https://www.talos.dev/v1.6/learn-more/knowledge-base/#logging-kubernetes-audit-logs-with-loki
 # Ensure that the cluster role binding is in the monitoring namespace and not default

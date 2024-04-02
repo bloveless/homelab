@@ -84,3 +84,11 @@ prometheus:
       storageClass: local-path
 
       size: 10Gi
+
+uptimeKuma:
+  image: louislam/uptime-kuma:1
+
+  persistentVolume:
+    storageClass: local-path
+    size: 1G
+

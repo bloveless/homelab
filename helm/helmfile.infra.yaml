@@ -5,8 +5,17 @@ repositories:
   url: https://charts.bitnami.com/bitnami
 - name: onepassword
   url: https://1password.github.io/connect-helm-charts
+- name: metrics-server
+  url: https://kubernetes-sigs.github.io/metrics-server/
   
 releases:
+- name: metrics-server
+  chart: metrics-server/metrics-server
+  namespace: kube-system
+  values:
+    - args:
+      - --kubelet-insecure-tls
+
 - name: metallb
   chart: ./charts/metallb
   namespace: metallb-system

@@ -4,40 +4,40 @@ global
 
 defaults
   log     global
-	timeout client		5s
-	timeout server		5s
-	timeout connect		2s
+  timeout client  1m
+  timeout server  1m
+  timeout connect 1m
 
 frontend k8s_api
-	bind	            *:6443
-	mode              tcp
+  bind            *:6443
+  mode              tcp
   timeout client    5m
-	option            tcplog
-	default_backend   k8s_api
+  option            tcplog
+  default_backend   k8s_api
 
 backend k8s_api
-	mode			tcp
+  mode    tcp
   timeout server    5m
 {% for i in groups ["talosctl"] %}
   server talos-c{{loop.index}}   {{i}}
 {% endfor %}
 
 frontend k8s_http
-	bind              *:80
-  mode              http
-	option            httplog
-	default_backend   k8s_workers_http
+  bind             *:80
+  mode             http
+  option           httplog
+  default_backend  k8s_workers_http
 
 backend k8s_workers_http
-	mode			        http
-	server talos-mlb  192.168.150.10:80
+  mode   http
+  server talos-mlb  192.168.150.10:80
 
 frontend k8s_https
-	bind              *:443
-	mode              tcp
-	default_backend   k8s_workers_https
+  bind            *:443
+  mode            tcp
+  default_backend k8s_workers_https
 
 backend k8s_workers_https
-	mode              tcp
-  server talos-mlb  192.168.150.10:443 verify none
+  mode             tcp
+  server talos-mlb 192.168.150.10:443 verify none
 

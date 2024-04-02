@@ -134,7 +134,7 @@ spec:
         image: {{ .Values.qbittorrent.image }}
         resources:
           limits:
-            memory: "500Mi"
+            memory: "1Gi"
         env:
         - name: PUID
           value: "1000"
