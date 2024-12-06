@@ -110,6 +110,10 @@ metadata:
   labels:
     app: media-server
     component: prowlarr
+  annotations:
+    keel.sh/policy: minor
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@hourly"
 spec:
   serviceName: prowlarr
   replicas: 1

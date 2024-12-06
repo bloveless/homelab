@@ -66,6 +66,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: local-path-provisioner
+  annotations:
+    keel.sh/policy: minor
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@hourly"
 spec:
   replicas: 1
   selector:

@@ -1,10 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
+  name: homelab-exporter
   labels:
     app: homelab-exporter
-  name: homelab-exporter
+  annotations:
+    keel.sh/policy: minor
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@hourly"
 spec:
   replicas: 1
   selector:

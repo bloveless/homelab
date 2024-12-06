@@ -7,6 +7,8 @@ repositories:
   url: https://1password.github.io/connect-helm-charts
 - name: metrics-server
   url: https://kubernetes-sigs.github.io/metrics-server/
+- name: keel
+  url: https://charts.keel.sh 
   
 releases:
 - name: metrics-server
@@ -58,3 +60,6 @@ releases:
   chart: ./charts/local-path-storage
   namespace: local-path-storage
 
+- name: keel
+  chart: keel/keel
+  namespace: kube-system

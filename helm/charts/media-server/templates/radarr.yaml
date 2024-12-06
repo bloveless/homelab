@@ -111,6 +111,10 @@ metadata:
   labels:
     app: media-server
     component: radarr
+  annotations:
+    keel.sh/policy: minor
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@hourly"
 spec:
   serviceName: radarr
   replicas: 1

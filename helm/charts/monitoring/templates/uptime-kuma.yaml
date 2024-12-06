@@ -19,6 +19,10 @@ metadata:
   labels:
     app: monitoring
     component: uptime-kuma
+  annotations:
+    keel.sh/policy: minor
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@hourly"
 spec:
   selector:
     matchLabels:

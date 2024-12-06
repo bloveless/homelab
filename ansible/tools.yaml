@@ -80,21 +80,44 @@
           TS_ROUTES="192.168.100.0/24"
           TS_AUTH_KEY="{{ lookup('ansible.builtin.env', 'TAILSCALE_KEY') }}"
 
-    - name: Create cloudflared data directory
+    - name: Start cloudflared docker container
       docker_container:
         name: cloudflared
-        image: cloudflare/cloudflared:2024.2.0
+        image: cloudflare/cloudflared:2024.6.1
         state: started
         networks:
           - name: tools
         restart: yes
         restart_policy: always
+        env:
+          TUNNEL_LOGLEVEL: "info" # "debug"
         command:
           - tunnel
           - --no-autoupdate
           - run
           - --token
           - "{{ lookup('ansible.builtin.env', 'CLOUDFLARED_REFRESH_KEY') }}"
+
+    - name: Create mariadb data directory
+      file:
+        state: directory
+        path: /opt/docker/mariadb/data
+
+    - name: Start mariadb docker container
+      docker_container:
+        name: mariadb
+        image: mariadb:11.4
+        state: started
+        networks:
+          - name: tools
+        restart: yes
+        restart_policy: always
+        env:
+          MARIADB_ROOT_PASSWORD: "{{ lookup('ansible.builtin.env', 'MARIADB_ROOT_PASSWORD') }}"
+        ports:
+          - 3306:3306
+        volumes:
+          - /opt/docker/mariadb/data:/var/lib/mysql:Z
 
     - name: Add kubernetes repo
       copy:
