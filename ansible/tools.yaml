@@ -8,7 +8,9 @@
         name: dnf-plugins-core
 
     - name: Add docker repository
-      command: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+      command: dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+      args:
+        creates: "/etc/yum.repos.d/docker-ce.repo"
 
     - name: Install docker
       dnf:
@@ -40,84 +42,20 @@
         src: haproxy.cfg.jinja2
         dest: /opt/docker/haproxy/haproxy.cfg
 
-    - name: Start haproxy docker container
-      docker_container:
-        name: haproxy
-        image: haproxy:2.9.4
-        state: started
-        networks:
-          - name: tools
-        restart: yes
-        restart_policy: always
-        ports:
-          - 80:80
-          - 443:443
-          - 6443:6443
-        sysctls:
-          net.ipv4.ip_unprivileged_port_start=0
-        volumes:
-          - /opt/docker/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-
     - name: Create tailscaled data directory
       file:
         state: directory
         path: /opt/docker/tailscaled/data
-
-    - name: Start tailscaled docker container
-      docker_container:
-        name: tailscaled
-        image: tailscale/tailscale:v1.58
-        state: started
-        networks:
-          - name: tools
-        restart: yes
-        restart_policy: always
-        volumes:
-          - /opt/docker/tailscaled/data:/var/lib/tailscale
-        env:
-          TS_STATE_DIR="/var/lib/tailscale"
-          TS_EXTRA_ARGS="--ssh --advertise-exit-node"
-          TS_ROUTES="192.168.100.0/24"
-          TS_AUTH_KEY="{{ lookup('ansible.builtin.env', 'TAILSCALE_KEY') }}"
-
-    - name: Start cloudflared docker container
-      docker_container:
-        name: cloudflared
-        image: cloudflare/cloudflared:2024.6.1
-        state: started
-        networks:
-          - name: tools
-        restart: yes
-        restart_policy: always
-        env:
-          TUNNEL_LOGLEVEL: "info" # "debug"
-        command:
-          - tunnel
-          - --no-autoupdate
-          - run
-          - --token
-          - "{{ lookup('ansible.builtin.env', 'CLOUDFLARED_REFRESH_KEY') }}"
 
     - name: Create mariadb data directory
       file:
         state: directory
         path: /opt/docker/mariadb/data
 
-    - name: Start mariadb docker container
-      docker_container:
-        name: mariadb
-        image: mariadb:11.4
-        state: started
-        networks:
-          - name: tools
-        restart: yes
-        restart_policy: always
-        env:
-          MARIADB_ROOT_PASSWORD: "{{ lookup('ansible.builtin.env', 'MARIADB_ROOT_PASSWORD') }}"
-        ports:
-          - 3306:3306
-        volumes:
-          - /opt/docker/mariadb/data:/var/lib/mysql:Z
+    - name: Create newt data directory
+      file:
+        state: directory
+        path: /opt/docker/newt/data
 
     - name: Add kubernetes repo
       copy:

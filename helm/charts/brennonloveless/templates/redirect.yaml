@@ -1,0 +1,12 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: brennonloveless-redirect
+spec:
+  virtualhost:
+    fqdn: www.brennonloveless.com
+  routes:
+    - conditions:
+      - prefix: /
+      requestRedirectPolicy:
+        hostname: brennonloveless.com
