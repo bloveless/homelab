@@ -181,8 +181,8 @@ job "media-server" {
       }
 
       resources {
-        cpu    = 1000
-        memory = 1024
+        cpu    = 250
+        memory = 256
       }
     }
   }
@@ -329,14 +329,14 @@ job "media-server" {
         "traefik.http.routers.qbittorrent.middlewares=crowdsec@file",
         "traefik.http.routers.qbittorrent.middlewares=redirect-to-https@file",
       ]
-      check {
-        name = "home_probe"
-        type = "http"
-        port = "http"
-        path = "/"
-        interval = "30s"
-        timeout = "5s"
-      }
+      # check {
+      #   name = "home_probe"
+      #   type = "http"
+      #   port = "http"
+      #   path = "/"
+      #   interval = "30s"
+      #   timeout = "5s"
+      # }
       connect {
         sidecar_service {}
       }
@@ -398,7 +398,7 @@ EOH
       driver = "docker"
 
       config {
-        image = "linuxserver/qbittorrent:5.1.0"
+        image = "qbittorrentofficial/qbittorrent-nox:5.1.2-1"
         ports = ["http"]
 
         mount {
@@ -420,13 +420,14 @@ EOH
         TZ = "America/Los_Angeles"
         PGID = "1000"
         PUID = "1000"
+        QBT_LEGAL_NOTICE = "confirm"
         WEBUI_PORT = "${NOMAD_PORT_http}"
         TORRENTING_PORT = 54058 # torrenting port open on ovpn
       }
 
       resources {
-        cpu = 250
-        memory = 256
+        cpu = 2000
+        memory = 1024
       }
     }
   }
@@ -685,6 +686,155 @@ EOH
       resources {
         cpu    = 250
         memory = 512
+      }
+    }
+  }
+
+  group "huntarr" {
+    network {
+      mode = "bridge"
+      port "http" {
+        to = 9705
+      }
+    }
+
+
+    volume "data" {
+      type      = "host"
+      source    = "huntarr-data"
+      read_only = false
+    }
+
+    service {
+      name = "huntarr"
+      port = 9705
+      tags = [
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=true",
+        "traefik.http.routers.huntarr.rule=Host(`huntarr.lan.brennonloveless.com`)",
+        "traefik.http.routers.huntarr.middlewares=crowdsec@file",
+        "traefik.http.routers.huntarr.middlewares=redirect-to-https@file",
+      ]
+      # check {
+      #   name = "health_probe"
+      #   type = "http"
+      #   port = "http"
+      #   path = "/api/health"
+      #   interval = "30s"
+      #   timeout = "5s"
+      # }
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "radarr"
+              local_bind_port = 7878
+            }
+            upstreams {
+              destination_name = "sonarr"
+              local_bind_port = 8989
+            }
+          }
+        }
+      }
+    }
+
+    task "server" {
+      driver = "docker"
+
+      config {
+        image = "huntarr/huntarr:8.1.11"
+        ports = ["http"]
+
+        mount {
+          type = "volume"
+          source = "huntarr-data"
+          target = "/config"
+          readonly = false
+        }
+      }
+
+      env {
+        TZ = "America/Los_Angeles"
+      }
+
+      resources {
+        cpu = 250
+        memory = 256
+      }
+    }
+  }
+
+  group "cleanuparr" {
+    network {
+      mode = "bridge"
+      port "http" {
+        to = 11011
+      }
+    }
+
+    service {
+      name = "cleanuparr"
+      port = 11011
+      tags = [
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=true",
+        "traefik.http.routers.cleanuparr.rule=Host(`cleanuparr.lan.brennonloveless.com`)",
+        "traefik.http.routers.cleanuparr.middlewares=crowdsec@file",
+        "traefik.http.routers.cleanuparr.middlewares=redirect-to-https@file",
+      ]
+      check {
+        name = "health_probe"
+        type = "http"
+        port = "http"
+        path = "/"
+        interval = "30s"
+        timeout = "5s"
+      }
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "radarr"
+              local_bind_port = 7878
+            }
+            upstreams {
+              destination_name = "sonarr"
+              local_bind_port = 8989
+            }
+            upstreams {
+              destination_name = "qbittorrent"
+              local_bind_port = 8080
+            }
+          }
+        }
+      }
+    }
+
+    task "server" {
+      driver = "docker"
+
+      config {
+        image = "ghcr.io/cleanuparr/cleanuparr:2.0.14"
+        ports = ["http"]
+
+        mount {
+          type = "bind"
+          source = "/mnt/homelab/media-server/cleanuparr/data"
+          target = "/config"
+          readonly = false
+        }
+      }
+
+      env {
+        PUID = "1000"
+        PGID = "1000"
+        TZ = "America/Los_Angeles"
+      }
+
+      resources {
+        cpu = 250
+        memory = 256
       }
     }
   }
