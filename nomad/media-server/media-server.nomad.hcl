@@ -230,10 +230,6 @@ job "media-server" {
               destination_name = "sonarr"
               local_bind_port = 8989
             }
-            upstreams {
-              destination_name = "flaresolverr"
-              local_bind_port = 8191
-            }
           }
         }
       }
@@ -270,43 +266,6 @@ job "media-server" {
       resources {
         cpu    = 250
         memory = 256
-      }
-    }
-  }
-
-  group "flaresolverr" {
-    network {
-      mode = "bridge"
-      port "http" {
-        to = 8191
-      }
-    }
-
-    service {
-      name = "flaresolverr"
-      port = 8191 # cannot use port name here or connect won't work
-      connect {
-        sidecar_service {}
-      }
-    }
-
-    task "server" {
-      driver = "docker"
-
-      config {
-        image = "flaresolverr/flaresolverr:v3.3.21"
-        ports = ["http"]
-      }
-
-      env {
-        TZ = "America/Los_Angeles"
-        PGID = "1000"
-        PUID = "1000"
-      }
-
-      resources {
-        cpu    = 1000
-        memory = 1024
       }
     }
   }
