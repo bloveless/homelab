@@ -798,13 +798,32 @@ EOH
     }
   }
 
-  group "recyclarr" {
+  group "profilarr" {
     network {
       mode = "bridge"
+      port "http" {
+        to = 6868
+      }
     }
 
     service {
-      name = "recyclarr"
+      name = "profilarr"
+      port = 6868
+      tags = [
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=true",
+        "traefik.http.routers.cleanuparr.rule=Host(`profilarr.lan.brennonloveless.com`)",
+        "traefik.http.routers.cleanuparr.middlewares=crowdsec@file",
+        "traefik.http.routers.cleanuparr.middlewares=redirect-to-https@file",
+      ]
+      check {
+        name = "health_probe"
+        type = "http"
+        port = "http"
+        path = "/"
+        interval = "30s"
+        timeout = "5s"
+      }
       connect {
         sidecar_service {
           proxy {
@@ -824,13 +843,11 @@ EOH
     task "server" {
       driver = "docker"
 
-      user = "1000:1000"
-
       config {
-        image = "ghcr.io/recyclarr/recyclarr:7.4"
+        image = "santiagosayshey/profilarr:v1.1.3"
         mount {
           type = "bind"
-          source = "/mnt/homelab/media-server/recyclarr/data"
+          source = "/mnt/homelab/media-server/profilarr/data"
           target = "/config"
           readonly = false
         }
