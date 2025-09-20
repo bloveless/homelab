@@ -516,74 +516,74 @@ EOH
     }
   }
 
-  group "overseerr" {
-    network {
-      mode = "bridge"
-      port "http" {
-        to = 5055
-      }
-    }
+  # group "overseerr" {
+  #   network {
+  #     mode = "bridge"
+  #     port "http" {
+  #       to = 5055
+  #     }
+  #   }
 
-    service {
-      name = "overseerr"
-      port = 5055 # cannot use port name here or connect won't work
-      tags = [
-        "traefik.enable=true",
-        "traefik.consulcatalog.connect=true",
-        "traefik.http.routers.overseerr.rule=Host(`overseerr.brennonloveless.com`)",
-        "traefik.http.routers.overseerr.middlewares=crowdsec@file",
-        "traefik.http.routers.overseerr.middlewares=redirect-to-https@file",
-      ]
-      connect {
-        sidecar_service {
-          proxy {
-            upstreams {
-              destination_name = "radarr"
-              local_bind_port = 7878
-            }
-            upstreams {
-              destination_name = "sonarr"
-              local_bind_port = 8989
-            }
-          }
-        }
-      }
-    }
+  #   service {
+  #     name = "overseerr"
+  #     port = 5055 # cannot use port name here or connect won't work
+  #     tags = [
+  #       "traefik.enable=true",
+  #       "traefik.consulcatalog.connect=true",
+  #       "traefik.http.routers.overseerr.rule=Host(`overseerr.brennonloveless.com`)",
+  #       "traefik.http.routers.overseerr.middlewares=crowdsec@file",
+  #       "traefik.http.routers.overseerr.middlewares=redirect-to-https@file",
+  #     ]
+  #     connect {
+  #       sidecar_service {
+  #         proxy {
+  #           upstreams {
+  #             destination_name = "radarr"
+  #             local_bind_port = 7878
+  #           }
+  #           upstreams {
+  #             destination_name = "sonarr"
+  #             local_bind_port = 8989
+  #           }
+  #         }
+  #       }
+  #     }
+  #   }
 
-    task "server" {
-      driver = "docker"
+  #   task "server" {
+  #     driver = "docker"
 
-      config {
-        image = "linuxserver/overseerr:1.34.0"
-        ports = ["http"]
+  #     config {
+  #       image = "linuxserver/overseerr:1.34.0"
+  #       ports = ["http"]
 
-        mount {
-          type = "bind"
-          source = "/mnt/homelab/media-server/overseerr/data"
-          target = "/config"
-          readonly = false
-        }
+  #       mount {
+  #         type = "bind"
+  #         source = "/mnt/homelab/media-server/overseerr/data"
+  #         target = "/config"
+  #         readonly = false
+  #       }
 
-        mount {
-          type = "bind"
-          source = "/mnt/media"
-          target = "/media"
-          readonly = false
-        }
-      }
+  #       mount {
+  #         type = "bind"
+  #         source = "/mnt/media"
+  #         target = "/media"
+  #         readonly = false
+  #       }
+  #     }
 
-      env {
-        TZ = "America/Los_Angeles"
-        PGID = "1000"
-        PUID = "1000"
-      }
+  #     env {
+  #       TZ = "America/Los_Angeles"
+  #       PGID = "1000"
+  #       PUID = "1000"
+  #     }
 
-      resources {
-        cpu    = 250
-        memory = 512
-      }
-    }
-  }
+  #     resources {
+  #       cpu    = 250
+  #       memory = 512
+  #     }
+  #   }
+  # }
 
   group "jellyseerr" {
     network {
@@ -794,6 +794,57 @@ EOH
       resources {
         cpu = 250
         memory = 512
+      }
+    }
+  }
+
+  group "recyclarr" {
+    network {
+      mode = "bridge"
+    }
+
+    service {
+      name = "recyclarr"
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "radarr"
+              local_bind_port = 7878
+            }
+            upstreams {
+              destination_name = "sonarr"
+              local_bind_port = 8989
+            }
+          }
+        }
+      }
+    }
+
+    task "server" {
+      driver = "docker"
+
+      user = "1000:1000"
+
+      config {
+        image = "ghcr.io/recyclarr/recyclarr:7.4"
+        mount {
+          type = "bind"
+          source = "/mnt/homelab/media-server/recyclarr/data"
+          target = "/config"
+          readonly = false
+        }
+      }
+
+      env {
+        TZ = "America/Los_Angeles"
+        PGID = "1000"
+        PUID = "1000"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
       }
     }
   }
