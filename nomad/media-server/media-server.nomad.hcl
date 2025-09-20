@@ -55,7 +55,7 @@ job "media-server" {
       driver = "docker"
 
       config {
-        image = "linuxserver/radarr:5.23.3"
+        image = "linuxserver/radarr:5.27.5"
         ports = ["http"]
 
         mount {
@@ -149,7 +149,7 @@ job "media-server" {
       driver = "docker"
 
       config {
-        image = "linuxserver/sonarr:4.0.14"
+        image = "linuxserver/sonarr:4.0.15"
         ports = ["http"]
 
         mount {
@@ -239,7 +239,7 @@ job "media-server" {
       driver = "docker"
 
       config {
-        image = "linuxserver/prowlarr:1.35.1"
+        image = "linuxserver/prowlarr:2.0.5"
         ports = ["http"]
 
         mount {
@@ -357,7 +357,7 @@ EOH
       driver = "docker"
 
       config {
-        image = "qbittorrentofficial/qbittorrent-nox:5.1.2-1"
+        image = "qbittorrentofficial/qbittorrent-nox:5.1.2-2"
         ports = ["http"]
 
         mount {
@@ -387,131 +387,6 @@ EOH
       resources {
         cpu = 2000
         memory = 1024
-      }
-    }
-  }
-
-  group "sabnzbd" {
-    network {
-      mode = "bridge"
-      port "http" {
-        to = 8080
-      }
-    }
-
-    service {
-      name = "sabnzbd"
-      port = 8080
-      tags = [
-        "traefik.enable=true",
-        "traefik.consulcatalog.connect=true",
-        "traefik.http.routers.sabnzbd.rule=Host(`sabnzbd.lan.brennonloveless.com`)",
-        "traefik.http.routers.sabnzbd.middlewares=crowdsec@file",
-        "traefik.http.routers.sabnzbd.middlewares=redirect-to-https@file",
-      ]
-      check {
-        name = "home_probe"
-        type = "http"
-        port = "http"
-        path = "/"
-        interval = "30s"
-        timeout = "5s"
-      }
-      connect {
-        sidecar_service {}
-      }
-    }
-
-    task "wireguard" {
-      driver = "docker"
-      config {
-        image = "lscr.io/linuxserver/wireguard:latest"
-        cap_add = ["net_admin", "net_raw"]
-        # Mount the config directory from the allocation into the container
-        mount {
-          type = "bind"
-          source = "config/wg_confs"
-          target = "/config/wg_confs"
-        }
-        sysctl = {
-          "net.ipv4.conf.all.src_valid_mark" = "1"
-        }
-      }
-
-      env {
-        PUID = "1000"
-        PGID = "1000"
-        TZ = "america/los_angeles"
-      }
-
-      template {
-        data = <<EOH
-{{ with nomadVar "nomad/jobs/media-server/sabnzbd/wireguard" }}
-[Interface]
-PrivateKey = {{.private_key}}
-Address = {{.address}}
-DNS = {{.dns}}
-# Allow local traffic
-PostUp = DROUTE=$(ip route | grep default | awk '{print $3}'); ip route add 192.168.0.0/16 via $DROUTE;
-PostUp = DROUTE=$(ip route | grep default | awk '{print $3}'); ip route add 172.16.0.0/16 via $DROUTE;
-PreDown = DROUTE=$(ip route | grep default | awk '{print $3}'); ip route del 192.168.0.0/16 via $DROUTE;
-PreDown = DROUTE=$(ip route | grep default | awk '{print $3}'); ip route del 172.16.0.0/16 via $DROUTE;
-
-[Peer]
-PublicKey = {{.public_key}}
-AllowedIPs = 0.0.0.0/0
-Endpoint = {{.endpoint}}
-{{ end }}
-EOH
-
-        destination = "config/wg_confs/wg0.conf"
-        perms = "0600"
-      }
-
-      resources {
-        cpu = 100
-        memory = 128
-      }
-    }
-
-    task "server" {
-      driver = "docker"
-
-      config {
-        image = "linuxserver/sabnzbd:4.5.1"
-        ports = ["http"]
-
-        mount {
-          type = "bind"
-          source = "/mnt/homelab/media-server/sabnzbd/data"
-          target = "/config"
-          readonly = false
-        }
-
-        mount {
-          type = "bind"
-          source = "/mnt/homelab/media-server/sabnzbd/backups"
-          target = "/backups"
-          readonly = false
-        }
-
-        mount {
-          type = "bind"
-          source = "/mnt/media"
-          target = "/media"
-          readonly = false
-        }
-      }
-
-      env {
-        TZ = "America/Los_Angeles"
-        PGID = "1000"
-        PUID = "1000"
-      }
-
-      resources {
-        cpu = 250
-        memory = 256
       }
     }
   }
@@ -556,7 +431,7 @@ EOH
       user = "1000:1000"
 
       config {
-        image = "fallenbagel/jellyseerr:2.5.2"
+        image = "fallenbagel/jellyseerr:2.7.3"
         ports = ["http"]
 
         mount {
@@ -633,7 +508,7 @@ EOH
       driver = "docker"
 
       config {
-        image = "huntarr/huntarr:8.1.11"
+        image = "huntarr/huntarr:8.2.10"
         ports = ["http"]
 
         mount {
@@ -705,7 +580,7 @@ EOH
       driver = "docker"
 
       config {
-        image = "ghcr.io/cleanuparr/cleanuparr:2.0.14"
+        image = "ghcr.io/cleanuparr/cleanuparr:2.3.1"
         ports = ["http"]
 
         mount {
