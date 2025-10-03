@@ -1,0 +1,245 @@
+- name: Kraken02 config
+  hosts: kraken02
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Mount homelab NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/homelab
+        path: /mnt/homelab
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Mount media NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/homelab/media-server/plex/data
+        path: /mnt/media
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Install packages
+      dnf:
+        state: latest
+        update_cache: true
+        name:
+          - podman
+          - htop
+
+    - name: Start podman.socket
+      systemd_service:
+        name: podman.socket
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Create podman exporter
+      containers.podman.podman_container:
+        name: podman-exporter
+        state: quadlet
+        image: quay.io/navidys/prometheus-podman-exporter:v1.18.1
+        command:
+          - prometheus-podman-exporter
+          - --collector.enable-all
+        ports:
+          - "9882:9882"
+        env:
+          CONTAINER_HOST: unix:///run/podman/podman.sock
+        volumes:
+          - "/run/podman/podman.sock:/run/podman/podman.sock"
+        user: root
+        security_opt:
+          - "label=disable"
+        cpus: 0.25
+        memory: 128m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: podman_exporter_conf
+
+    - name: Start podman exporter
+      systemd_service:
+        name: podman-exporter
+        state: "{{ 'restarted' if podman_exporter_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create node exporter container
+      containers.podman.podman_container:
+        name: node-exporter
+        state: quadlet
+        image: quay.io/prometheus/node-exporter:v1.9.1
+        command:
+          - "--path.rootfs=/host"
+        ports:
+          - "9100:9100"
+        env:
+          CONTAINER_HOST: unix:///run/podman/podman.sock
+        volumes:
+          - "/:/host:ro,rslave"
+        user: root
+        cpus: 0.25
+        memory: 128m
+        network: host
+        pid: host
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: node_exporter_conf
+
+    - name: Open node exporter port in firewalls
+      ansible.posix.firewalld:
+        port: 9100/tcp
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Start node exporter
+      systemd_service:
+        name: node-exporter
+        state: "{{ 'restarted' if node_exporter_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Login to ghcr.io
+      containers.podman.podman_login:
+        username: "{{ lookup('community.general.onepassword', 'ghcr.io', vault='Homelab', field='username', errors='warn') }}"
+        password: "{{ lookup('community.general.onepassword', 'ghcr.io', vault='Homelab', field='password', errors='warn') }}"
+        registry: ghcr.io
+
+    - name: Create brennonloveless container
+      containers.podman.podman_container:
+        name: brennonloveless
+        state: quadlet
+        image: docker.io/bloveless/brennonloveless-com:0.2.2
+        ports:
+          - "8080:80"
+        cpus: 0.25
+        memory: 128m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: brennonloveless_conf
+
+    - name: Start brennonloveless
+      systemd_service:
+        name: brennonloveless
+        state: "{{ 'restarted' if brennonloveless_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create radarr config directory
+      file:
+        state: directory
+        path: /opt/radarr/data
+        owner: 1000
+        group: 1000
+        mode: 0755
+
+    - name: Create radarr container
+      containers.podman.podman_container:
+        name: radarr
+        state: quadlet
+        image: docker.io/linuxserver/radarr:5.27.5
+        ports:
+          - "7878:7878"
+        volumes:
+          - "/mnt/homelab/media-server/radarr/backups:/backups"
+          - "/mnt/media:/media"
+          - "/opt/radarr/data:/config:z"
+        env:
+          TZ: "America/Los_Angeles"
+          PGID: "1000"
+          PUID: "1000"
+        cpus: 1.0
+        memory: 1g
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: radarr_conf
+
+    - name: Start radarr
+      systemd_service:
+        name: radarr
+        state: "{{ 'restarted' if radarr_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create jellyseerr container
+      containers.podman.podman_container:
+        name: jellyseerr
+        state: quadlet
+        image: docker.io/fallenbagel/jellyseerr:2.7.3
+        ports:
+          - "5055:5055"
+        volumes:
+          - "/mnt/homelab/media-server/jellyseerr/data:/app/config"
+        env:
+          TZ: "America/Los_Angeles"
+          PGID: "1000"
+          PUID: "1000"
+        cpus: 0.25
+        memory: 512m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: jellyseerr_conf
+
+    - name: Start jellyseerr
+      systemd_service:
+        name: jellyseerr
+        state: "{{ 'restarted' if jellyseerr_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create profilarr container
+      containers.podman.podman_container:
+        name: profilarr
+        state: quadlet
+        image: docker.io/santiagosayshey/profilarr:v1.1.3
+        ports:
+          - "6868:6868"
+        volumes:
+          - "/mnt/homelab/media-server/profilarr/data:/config"
+        env:
+          TZ: "America/Los_Angeles"
+          PGID: "1000"
+          PUID: "1000"
+        cpus: 0.1
+        memory: 128m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: profilarr_conf
+
+    - name: Start profilarr
+      systemd_service:
+        name: profilarr
+        state: "{{ 'restarted' if jellyseerr_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true

@@ -1,11 +1,16 @@
 .PHONY: tools deps helm
 
-tools:
-	ANSIBLE_FORCE_COLOR=True \
-	TAILSCALE_KEY=op://Homelab/ToolsServer/TAILSCALE_KEY \
-		CLOUDFLARED_REFRESH_KEY=op://Homelab/ToolsServer/CLOUDFLARED_REFRESH_KEY \
-		MARIADB_ROOT_PASSWORD=op://Homelab/ToolsServer/MARIADB_ROOT_PASSWORD \
-		op run -- ansible-playbook -i ansible/inventory.ini ansible/tools.yaml
+kraken:
+	ansible-playbook -i ansible/inventory.ini ansible/kraken01.yaml ansible/kraken02.yaml ansible/kraken03.yaml
+
+kraken01:
+	ansible-playbook -i ansible/inventory.ini ansible/kraken01.yaml
+
+kraken02:
+	ansible-playbook -i ansible/inventory.ini ansible/kraken02.yaml
+
+kraken03:
+	ansible-playbook -i ansible/inventory.ini ansible/kraken03.yaml
 
 deps:
 	ansible-galaxy role install artis3n.tailscale

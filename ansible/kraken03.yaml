@@ -1,0 +1,241 @@
+- name: Kraken03 config
+  hosts: kraken03
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Mount homelab NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/homelab
+        path: /mnt/homelab
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Mount media NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/homelab/media-server/plex/data
+        path: /mnt/media
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Install packages
+      dnf:
+        state: latest
+        update_cache: true
+        name:
+          - podman
+          - htop
+
+    - name: Start podman.socket
+      systemd_service:
+        name: podman.socket
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Create podman exporter container
+      containers.podman.podman_container:
+        name: podman-exporter
+        state: quadlet
+        image: quay.io/navidys/prometheus-podman-exporter:v1.18.1
+        command:
+          - prometheus-podman-exporter
+          - --collector.enable-all
+        ports:
+          - "9882:9882"
+        env:
+          CONTAINER_HOST: unix:///run/podman/podman.sock
+        volumes:
+          - "/run/podman/podman.sock:/run/podman/podman.sock"
+        user: root
+        security_opt:
+          - "label=disable"
+        cpus: 0.25
+        memory: 128m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: podman_exporter_conf
+
+    - name: Start podman exporter
+      systemd_service:
+        name: podman-exporter
+        state: "{{ 'restarted' if podman_exporter_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create node exporter container
+      containers.podman.podman_container:
+        name: node-exporter
+        state: quadlet
+        image: quay.io/prometheus/node-exporter:v1.9.1
+        command:
+          - "--path.rootfs=/host"
+        ports:
+          - "9100:9100"
+        env:
+          CONTAINER_HOST: unix:///run/podman/podman.sock
+        volumes:
+          - "/:/host:ro,rslave"
+        user: root
+        cpus: 0.25
+        memory: 128m
+        network: host
+        pid: host
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: node_exporter_conf
+
+    - name: Open node exporter port in firewalls
+      ansible.posix.firewalld:
+        port: 9100/tcp
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Start node exporter
+      systemd_service:
+        name: node-exporter
+        state: "{{ 'restarted' if node_exporter_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Login to gchr.io
+      containers.podman.podman_login:
+        username: "{{ lookup('community.general.onepassword', 'ghcr.io', vault='Homelab', field='username', errors='warn') }}"
+        password: "{{ lookup('community.general.onepassword', 'ghcr.io', vault='Homelab', field='password', errors='warn') }}"
+        registry: ghcr.io
+
+    - name: Create fritzandandre container
+      containers.podman.podman_container:
+        name: fritzandandre
+        state: quadlet
+        image: ghcr.io/bloveless/fritzandandre.com:sha-933e05f
+        ports:
+          - "8080:8080"
+        volumes:
+          - "/mnt/homelab/fritzandandre/fritzandandre.com/public:/app/public/app"
+        cpus: 0.25
+        memory: 128m
+        env:
+          ADMIN_THEME: "pyrocms.theme.accelerant"
+          APPLICATION_DOMAIN: "fritzandandre.com"
+          APPLICATION_NAME: "Fritz And Andre"
+          APPLICATION_REFERENCE: "fna"
+          APP_DEBUG: "false"
+          APP_TIMEZONE: "America/Denver"
+          APP_URL: "https://fritzandandre.com/"
+          DB_HOST: "{{ lookup('community.general.onepassword', 'FritzAndAndre', vault='Homelab', field='DB_HOST', errors='warn') }}"
+          DB_PORT: "3306"
+          DB_DATABASE: "fritzandandre"
+          DB_PREFIX: "fna_"
+          DEFAULT_LOCALE: "en"
+          INSTALLED: "true"
+          STANDARD_THEME: "fritzandandre.theme.fna"
+          SALESFORCE_WSDL: "wsdl/partner.wsdl"
+          APP_KEY: "{{ lookup('community.general.onepassword', 'FritzAndAndre', vault='Homelab', field='APP_KEY', errors='warn') }}"
+          DB_USERNAME: "{{ lookup('community.general.onepassword', 'FritzAndAndre', vault='Homelab', field='DB_USERNAME', errors='warn') }}"
+          DB_PASSWORD: "{{ lookup('community.general.onepassword', 'FritzAndAndre', vault='Homelab', field='DB_PASSWORD', errors='warn') }}"
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: fritzandandre_conf
+
+    - name: Start fritzandandre
+      systemd_service:
+        name: fritzandandre
+        state: "{{ 'restarted' if fritzandandre_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create sonarr config directory
+      file:
+        state: directory
+        path: /opt/sonarr/data
+        owner: 1000
+        group: 1000
+        mode: 0755
+
+    - name: Create sonarr container
+      containers.podman.podman_container:
+        name: sonarr
+        state: quadlet
+        image: docker.io/linuxserver/sonarr:4.0.15
+        ports:
+          - "8989:8989"
+        volumes:
+          - "/mnt/homelab/media-server/sonarr/backups:/backups"
+          - "/mnt/media:/media"
+          - "/opt/sonarr/data:/config:z"
+        env:
+          TZ: "America/Los_Angeles"
+          PGID: "1000"
+          PUID: "1000"
+        cpus: 0.25
+        memory: 256m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: sonarr_conf
+
+    - name: Start sonarr
+      systemd_service:
+        name: sonarr
+        state: "{{ 'restarted' if sonarr_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
+
+    - name: Create huntarr config directory
+      file:
+        state: directory
+        path: /opt/huntarr/data
+        owner: 1000
+        group: 1000
+        mode: 0755
+
+    - name: Create huntarr container
+      containers.podman.podman_container:
+        name: huntarr
+        state: quadlet
+        image: docker.io/huntarr/huntarr:8.2.10
+        ports:
+          - "9705:9705"
+        volumes:
+          - "/opt/huntarr/data:/config:z"
+        env:
+          TZ: "America/Los_Angeles"
+        cpus: 0.25
+        memory: 256m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: huntarr_conf
+
+    - name: Start huntarr
+      systemd_service:
+        name: huntarr
+        state: "{{ 'restarted' if huntarr_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
