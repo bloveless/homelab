@@ -239,3 +239,38 @@
         state: "{{ 'restarted' if huntarr_conf.changed else 'started' }}"
         enabled: true
         daemon_reload: true
+
+    - name: Create a portainer volume
+      containers.podman.podman_volume:
+        state: present
+        name: portainer_data
+
+    - name: Create portainer container
+      containers.podman.podman_container:
+        name: portainer
+        state: quadlet
+        image: docker.io/portainer/portainer-ce:lts
+        privileged: true
+        ports:
+          - "8000:8000"
+          - "9443:9443"
+        volumes:
+          - "portainer_data:/data"
+          - "/run/podman/podman.sock:/var/run/docker.sock"
+        cpus: 0.25
+        memory: 256m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: portainer_conf
+
+    - name: Start portainer
+      systemd_service:
+        name: portainer
+        state: "{{ 'restarted' if portainer_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true

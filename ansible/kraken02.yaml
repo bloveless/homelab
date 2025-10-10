@@ -243,3 +243,38 @@
         state: "{{ 'restarted' if jellyseerr_conf.changed else 'started' }}"
         enabled: true
         daemon_reload: true
+
+    - name: Create a portainer volume
+      containers.podman.podman_volume:
+        state: present
+        name: portainer
+
+    - name: Create portainer agent container
+      containers.podman.podman_container:
+        name: portainer_agent
+        state: quadlet
+        image: docker.io/portainer/agent:2.33.2
+        privileged: true
+        ports:
+          - "9001:9001"
+        volumes:
+          - "/run/podman/podman.sock:/var/run/docker.sock"
+          - "/var/lib/containers/storage/volumes:/var/lib/docker/volumes"
+          - "/:/host"
+        cpus: 0.25
+        memory: 256m
+        quadlet_options:
+          - |
+            [Service]
+            Restart=always
+
+            [Install]
+            WantedBy=default.target
+      register: portainer_agent_conf
+
+    - name: Start portainer agent
+      systemd_service:
+        name: portainer_agent
+        state: "{{ 'restarted' if portainer_agent_conf.changed else 'started' }}"
+        enabled: true
+        daemon_reload: true
