@@ -4,4 +4,6 @@ helm/.terraform
 helm/terraform.tfstate
 helm/terraform.tfstate.backup
 helm/charts/*/charts
-
+kraken/.terraform
+kraken/terraform.tfstate
+kraken/terraform.tfstate.backup

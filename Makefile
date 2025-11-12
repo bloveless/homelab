@@ -1,19 +1,21 @@
-.PHONY: tools deps helm
+default: plan
 
-kraken:
-	ansible-playbook -i ansible/inventory.ini ansible/kraken01.yaml ansible/kraken02.yaml ansible/kraken03.yaml
+.PHONY: init
+init:
+	tofu -chdir=kraken init
 
-kraken01:
-	ansible-playbook -i ansible/inventory.ini ansible/kraken01.yaml
+.PHONY: plan
+plan:
+	op run --env-file="./Makefile.env" -- sh -c 'tofu -chdir=kraken plan -var "cf_api_key=$$CF_API_KEY"'
 
-kraken02:
-	ansible-playbook -i ansible/inventory.ini ansible/kraken02.yaml
+.PHONY: apply
+apply:
+	op run --env-file="./Makefile.env" -- sh -c 'tofu -chdir=kraken apply -var "cf_api_key=$$CF_API_KEY"'
 
-kraken03:
-	ansible-playbook -i ansible/inventory.ini ansible/kraken03.yaml
-
+.PHONY: deps
 deps:
 	ansible-galaxy role install artis3n.tailscale
 
+.PHONY: helm
 helm:
 	helmfile -f ./helm/helmfile.yaml apply
