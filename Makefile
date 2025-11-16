@@ -6,11 +6,11 @@ init:
 
 .PHONY: plan
 plan:
-	op run --env-file="./Makefile.env" -- sh -c 'tofu -chdir=kraken plan -var "cf_api_key=$$CF_API_KEY"'
+	op run --env-file="./Makefile.env" -- sh -c 'tofu -chdir=kraken plan'
 
 .PHONY: apply
 apply:
-	op run --env-file="./Makefile.env" -- sh -c 'tofu -chdir=kraken apply -var "cf_api_key=$$CF_API_KEY"'
+	op run --env-file="./Makefile.env" -- sh -c 'tofu -chdir=kraken apply'
 
 .PHONY: deps
 deps:
