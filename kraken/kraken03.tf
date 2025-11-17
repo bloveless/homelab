@@ -150,7 +150,7 @@ resource "incus_instance" "prowlarr" {
     name = "prowlarr-backups"
     type = "disk"
     properties = {
-      source = "/mnt/homelab/media-server/prowlarr/backups"
+      source = "/mnt/backups/prowlarr"
       path   = "/backups"
     }
   }
@@ -174,6 +174,7 @@ resource "incus_instance" "huntarr" {
     "boot.autostart"   = true
     "boot.autorestart" = true
     "environment.TZ"   = "America/Los_Angeles"
+    "raw.idmap"        = "both 1000 1000"
   }
 
   device {
@@ -183,6 +184,15 @@ resource "incus_instance" "huntarr" {
       path   = "/config"
       pool   = incus_storage_volume.huntarr_data.pool
       source = incus_storage_volume.huntarr_data.name
+    }
+  }
+
+  device {
+    name = "huntarr-backups"
+    type = "disk"
+    properties = {
+      source = "/mnt/backups/huntarr"
+      path   = "/config/backups"
     }
   }
 }

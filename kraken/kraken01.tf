@@ -1,3 +1,19 @@
+resource "incus_instance" "tools" {
+  project = "default"
+  name    = "tools"
+  image   = "images:fedora/43"
+  target  = "kraken01"
+
+  config = {
+    "boot.autostart" = true
+    "limits.cpu"     = 1
+  }
+
+  lifecycle {
+    ignore_changes = [device]
+  }
+}
+
 resource "incus_storage_volume" "caddy_config" {
   project = "default"
   name    = "caddy-config"
@@ -131,7 +147,7 @@ resource "incus_instance" "radarr" {
     name = "radarr-backups"
     type = "disk"
     properties = {
-      source = "/mnt/homelab/media-server/radarr/backups"
+      source = "/mnt/backups/radarr"
       path   = "/backups"
     }
   }

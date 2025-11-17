@@ -174,7 +174,7 @@ resource "incus_instance" "sonarr" {
     name = "sonarr-backups"
     type = "disk"
     properties = {
-      source = "/mnt/homelab/media-server/sonarr/backups"
+      source = "/mnt/backups/sonarr"
       path   = "/backups"
     }
   }

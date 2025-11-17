@@ -1,0 +1,59 @@
+- name: Kraken config
+  hosts:
+    - kraken01
+    - kraken02
+    - kraken03
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Create mount directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: 1000
+        group: 1000
+        mode: "0755"
+      loop:
+        - /mnt/media
+        - /mnt/homelab
+        - /mnt/backups
+
+    - name: Mount homelab NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/homelab
+        path: /mnt/homelab
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Mount media NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/media
+        path: /mnt/media
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Mount homelab NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/homelab
+        path: /mnt/homelab
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Mount backups NFS volume
+      ansible.posix.mount:
+        src: 192.168.0.115:/volume1/backups
+        path: /mnt/backups
+        opts: rw,sync,hard
+        state: mounted
+        fstype: nfs
+
+    - name: Install packages
+      apt:
+        state: latest
+        update_cache: true
+        name:
+          - incus
+          - neovim

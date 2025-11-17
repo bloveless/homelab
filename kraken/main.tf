@@ -23,19 +23,3 @@ resource "incus_storage_pool" "local" {
   name    = "local"
   driver  = "btrfs"
 }
-
-resource "incus_instance" "tools" {
-  project = "default"
-  name    = "tools"
-  image   = "images:fedora/43"
-  target  = "kraken01"
-
-  config = {
-    "boot.autostart" = true
-    "limits.cpu"     = 1
-  }
-
-  lifecycle {
-    ignore_changes = [device]
-  }
-}
