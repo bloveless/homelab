@@ -251,10 +251,9 @@ resource "incus_instance" "jellyfin" {
   config = {
     "boot.autostart"   = true
     "boot.autorestart" = true
-    # container must be run as root so it has access to the GPU but this mapping says that the root
-    # user is mapped to 1000 outside of the container (really only on the /mnt/media mount) so this
-    # should be secure enough
-    "raw.idmap" = "both 1000 0"
+    "oci.uid"          = "1000"
+    "oci.gid"          = "1000"
+    "raw.idmap"        = "both 1000 1000"
   }
 
   device {
@@ -292,6 +291,7 @@ resource "incus_instance" "jellyfin" {
     properties = {
       "gputype" = "physical"
       "pci"     = "0000:00:02.0"
+      "gid"     = "1000"
     }
   }
 }

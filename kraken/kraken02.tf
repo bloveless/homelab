@@ -71,14 +71,11 @@ resource "incus_instance" "fileflows" {
   target  = "kraken02"
 
   config = {
-    "boot.autostart"   = true
-    "boot.autorestart" = true
-    # container must be run as root so it has access to the GPU but this mapping says that the root
-    # user is mapped to 1000 outside of the container (really only on the /mnt/media mount) so this
-    # should be secure enough
-    "raw.idmap"                = "both 1000 0"
-    "environment.PUID"         = "0"
-    "environment.PGID"         = "0"
+    "boot.autostart"           = true
+    "boot.autorestart"         = true
+    "raw.idmap"                = "both 1000 1000"
+    "environment.PUID"         = "1000"
+    "environment.PGID"         = "1000"
     "environment.TempPathHost" = "/temp"
     "environment.TZ"           = "America/Los_Angeles"
   }
@@ -128,6 +125,7 @@ resource "incus_instance" "fileflows" {
     properties = {
       "gputype" = "physical"
       "pci"     = "0000:00:02.0"
+      "gid"     = "1000"
     }
   }
 }
