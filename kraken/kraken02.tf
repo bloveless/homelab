@@ -71,13 +71,16 @@ resource "incus_instance" "fileflows" {
   target  = "kraken02"
 
   config = {
-    "boot.autostart"           = true
-    "boot.autorestart"         = true
-    "raw.idmap"                = "both 1000 1000"
+    "boot.autostart"   = true
+    "boot.autorestart" = true
+    # container must be run as root so it has access to the GPU but this mapping says that the root
+    # user is mapped to 1000 outside of the container (really only on the /mnt/media mount) so this
+    # should be secure enough
+    "raw.idmap"                = "both 1000 0"
+    "environment.PUID"         = "0"
+    "environment.PGID"         = "0"
     "environment.TempPathHost" = "/temp"
     "environment.TZ"           = "America/Los_Angeles"
-    "environment.PUID"         = "1000"
-    "environment.PGID"         = "1000"
   }
 
   device {
@@ -208,6 +211,53 @@ resource "incus_instance" "cleanuparr" {
       path   = "/config"
       pool   = incus_storage_volume.cleanuparr_data.pool
       source = incus_storage_volume.cleanuparr_data.name
+    }
+  }
+}
+
+resource "incus_storage_volume" "prometheus_config" {
+  project = "default"
+  name    = "prometheus-config"
+  pool    = incus_storage_pool.local.name
+  target  = "kraken02"
+}
+
+resource "incus_storage_volume" "prometheus_data" {
+  project = "default"
+  name    = "prometheus-data"
+  pool    = incus_storage_pool.local.name
+  target  = "kraken02"
+}
+
+resource "incus_instance" "prometheus" {
+  project = "default"
+  name    = "prometheus"
+  image   = "docker:prom/prometheus:v3.7.3"
+  running = true
+  target  = "kraken02"
+
+  config = {
+    "boot.autostart"   = true
+    "boot.autorestart" = true
+  }
+
+  device {
+    name = "prometheus-config"
+    type = "disk"
+    properties = {
+      path   = "/etc/prometheus"
+      pool   = incus_storage_volume.prometheus_config.pool
+      source = incus_storage_volume.prometheus_config.name
+    }
+  }
+
+  device {
+    name = "prometheus-data"
+    type = "disk"
+    properties = {
+      path   = "/prometheus"
+      pool   = incus_storage_volume.prometheus_data.pool
+      source = incus_storage_volume.prometheus_data.name
     }
   }
 }

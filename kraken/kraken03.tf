@@ -196,3 +196,102 @@ resource "incus_instance" "huntarr" {
     }
   }
 }
+
+resource "incus_storage_volume" "grafana_data" {
+  project = "default"
+  name    = "grafana-data"
+  pool    = incus_storage_pool.local.name
+  target  = "kraken03"
+}
+
+resource "incus_instance" "grafana" {
+  project = "default"
+  name    = "grafana"
+  image   = "docker:grafana/grafana:12.2"
+  running = true
+  target  = "kraken03"
+
+  config = {
+    "boot.autostart"   = true
+    "boot.autorestart" = true
+  }
+
+  device {
+    name = "grafana-data"
+    type = "disk"
+    properties = {
+      path   = "/var/lib/grafana"
+      pool   = incus_storage_volume.grafana_data.pool
+      source = incus_storage_volume.grafana_data.name
+    }
+  }
+}
+
+resource "incus_storage_volume" "jellyfin_data" {
+  project = "default"
+  name    = "jellyfin-data"
+  pool    = incus_storage_pool.local.name
+  target  = "kraken03"
+}
+
+resource "incus_storage_volume" "jellyfin_cache" {
+  project = "default"
+  name    = "jellyfin-cache"
+  pool    = incus_storage_pool.local.name
+  target  = "kraken03"
+}
+
+resource "incus_instance" "jellyfin" {
+  project = "default"
+  name    = "jellyfin"
+  image   = "docker:jellyfin/jellyfin:10.11"
+  running = true
+  target  = "kraken03"
+
+  config = {
+    "boot.autostart"   = true
+    "boot.autorestart" = true
+    # container must be run as root so it has access to the GPU but this mapping says that the root
+    # user is mapped to 1000 outside of the container (really only on the /mnt/media mount) so this
+    # should be secure enough
+    "raw.idmap" = "both 1000 0"
+  }
+
+  device {
+    name = "jellyfin-data"
+    type = "disk"
+    properties = {
+      pool   = incus_storage_volume.jellyfin_data.pool
+      source = incus_storage_volume.jellyfin_data.name
+      path   = "/config"
+    }
+  }
+
+  device {
+    name = "jellyfin-cache"
+    type = "disk"
+    properties = {
+      pool   = incus_storage_volume.jellyfin_cache.pool
+      source = incus_storage_volume.jellyfin_cache.name
+      path   = "/cache"
+    }
+  }
+
+  device {
+    name = "jellyfin-media"
+    type = "disk"
+    properties = {
+      source = "/mnt/media"
+      path   = "/mnt/media"
+    }
+  }
+
+  device {
+    name = "qsv"
+    type = "gpu"
+    properties = {
+      "gputype" = "physical"
+      "pci"     = "0000:00:02.0"
+    }
+  }
+}
