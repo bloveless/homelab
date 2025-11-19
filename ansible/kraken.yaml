@@ -34,14 +34,6 @@
         state: mounted
         fstype: nfs
 
-    - name: Mount homelab NFS volume
-      ansible.posix.mount:
-        src: 192.168.0.115:/volume1/homelab
-        path: /mnt/homelab
-        opts: rw,sync,hard
-        state: mounted
-        fstype: nfs
-
     - name: Mount backups NFS volume
       ansible.posix.mount:
         src: 192.168.0.115:/volume1/backups
@@ -57,3 +49,5 @@
         name:
           - incus
           - neovim
+          - htop
+          - intel-gpu-tools
