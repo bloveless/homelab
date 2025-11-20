@@ -1,8 +1,6 @@
 - name: Kraken config
   hosts:
-    - kraken01
-    - kraken02
-    - kraken03
+    - kraken
   become: true
   gather_facts: true
   tasks:
@@ -51,3 +49,39 @@
           - neovim
           - htop
           - intel-gpu-tools
+
+    - name: Install incus backup volumes scripts
+      ansible.builtin.copy:
+        src: ./scripts/incus-backup-volumes.sh
+        dest: /usr/local/bin/incus-backup-volumes.sh
+        owner: root
+        group: root
+        mode: "0744"
+
+    - name: Install incus backup instances scripts
+      ansible.builtin.copy:
+        src: ./scripts/incus-backup-instances.sh
+        dest: /usr/local/bin/incus-backup-instances.sh
+        owner: root
+        group: root
+        mode: "0744"
+
+    - name: Backup incus instances nightly
+      ansible.builtin.cron:
+        name: backup incus instances
+        hour: "2"
+        minute: "23"
+        user: root
+        job: "/usr/local/bin/incus-backup-instances.sh"
+        cron_file: incus-backups
+      when: ansible_hostname == "kraken02"
+
+    - name: Backup incus volumes nightly
+      ansible.builtin.cron:
+        name: backup incus volumes
+        hour: "3"
+        minute: "32"
+        user: root
+        job: "/usr/local/bin/incus-backup-volumes.sh"
+        cron_file: incus-backups
+      when: ansible_hostname == "kraken02"
