@@ -112,7 +112,7 @@ resource "incus_storage_volume" "radarr_data" {
 resource "incus_instance" "radarr" {
   project = "default"
   name    = "radarr"
-  image   = "docker:linuxserver/radarr:5.28.0"
+  image   = "docker:linuxserver/radarr:6.0.4"
   running = true
   target  = "kraken01"
 

@@ -118,7 +118,7 @@ resource "incus_storage_volume" "prowlarr_data" {
   project = "default"
   name    = "prowlarr-data"
   pool    = incus_storage_pool.local.name
-  target  = "kraken01"
+  target  = "kraken03"
 }
 
 resource "incus_instance" "prowlarr" {
@@ -126,7 +126,7 @@ resource "incus_instance" "prowlarr" {
   name    = "prowlarr"
   image   = "docker:linuxserver/prowlarr:2.1.5"
   running = true
-  target  = "kraken01"
+  target  = "kraken03"
 
   config = {
     "boot.autostart"   = true

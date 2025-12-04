@@ -4,6 +4,51 @@
   become: true
   gather_facts: true
   tasks:
+    - name: Install packages
+      apt:
+        state: latest
+        update_cache: true
+        name:
+          - incus
+          - neovim
+          - htop
+          - intel-gpu-tools
+          # - ovn-central
+          # - ovn-host
+
+    # - name: OVN Config Primary
+    #   ansible.builtin.template:
+    #     src: config/ovn-primary.conf.j2
+    #     dest: /etc/default/ovn-central
+    #     owner: root
+    #     group: root
+    #     mode: "0644"
+    #   when: ansible_hostname == "kraken01"
+    #
+    # - name: OVN Config Secondaries
+    #   ansible.builtin.template:
+    #     src: config/ovn-secondaries.conf.j2
+    #     dest: /etc/default/ovn-central
+    #     owner: root
+    #     group: root
+    #     mode: "0644"
+    #   when: ansible_hostname != "kraken01"
+    #
+    # - name: Enable and start OVN
+    #   ansible.builtin.systemd_service:
+    #     name: "{{ item }}"
+    #     state: started
+    #     enabled: true
+    #   loop:
+    #     - ovn-central.service
+    #     - ovn-host.service
+    #
+    # - name: Configure Open vSwitch
+    #   ansible.builtin.command: sudo ovs-vsctl set open_vswitch . \
+    #     external_ids:ovn-remote=tcp:{{ hostvars['kraken01'].ansible_host }}:6642,tcp:{{ hostvars['kraken02'].ansible_host }}:6642,tcp:{{ hostvars['kraken03'].ansible_host }}:6642 \
+    #     external_ids:ovn-encap-type=geneve \
+    #     external_ids:ovn-encap-ip={{ hostvars[inventory_hostname].ansible_host }}
+
     - name: Create mount directories
       ansible.builtin.file:
         path: "{{ item }}"
@@ -39,16 +84,6 @@
         opts: rw,sync,hard
         state: mounted
         fstype: nfs
-
-    - name: Install packages
-      apt:
-        state: latest
-        update_cache: true
-        name:
-          - incus
-          - neovim
-          - htop
-          - intel-gpu-tools
 
     - name: Install incus backup volumes scripts
       ansible.builtin.copy:
