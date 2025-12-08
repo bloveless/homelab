@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr
+spec:
+  type: LoadBalancer
+  selector:
+    app: sonarr
+    component: server
+  ports:
+    - name: http
+      port: 8989
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  labels:
+    app: sonarr
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: sonarr
+      component: server
+  template:
+    metadata:
+      labels:
+        app: sonarr
+        component: server
+    spec:
+      containers:
+        - name: sonarr
+          image: linuxserver/sonarr:4.0.16
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          ports:
+            - name: http
+              containerPort: 7878
+          volumeMounts:
+            - name: data
+              mountPath: /config
+            - name: media
+              mountPath: /mnt/media
+            - name: backups
+              mountPath: /backups
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: sonarr-data
+        - name: media
+          hostPath:
+            path: /mnt/media
+        - name: backups
+          hostPath:
+            path: /mnt/backups/sonarr
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

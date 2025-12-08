@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fileflows
+spec:
+  type: LoadBalancer
+  selector:
+    app: fileflows
+    component: server
+  ports:
+    - name: http
+      port: 5000

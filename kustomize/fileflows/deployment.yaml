@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fileflows
+  labels:
+    app: fileflows
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: fileflows
+      component: server
+  template:
+    metadata:
+      labels:
+        app: fileflows
+        component: server
+    spec:
+      containers:
+        - name: fileflows
+          image: revenz/fileflows:25.12
+          env:
+            - name: TZ
+              value: "America/Los_Angeles"
+            - name: TempPathHost
+              value: "/temp"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - name: http
+              containerPort: 5000
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: temp
+              mountPath: /temp
+            - name: data
+              mountPath: /app/Data
+            - name: logs
+              mountPath: /app/Logs
+            - name: common
+              mountPath: /app/common
+            - name: graphics-card
+              mountPath: /dev/dri
+            - name: media
+              mountPath: /mnt/media
+      volumes:
+        - name: temp
+          persistentVolumeClaim:
+            claimName: fileflows-temp
+        - name: data
+          persistentVolumeClaim:
+            claimName: fileflows-data
+        - name: logs
+          persistentVolumeClaim:
+            claimName: fileflows-logs
+        - name: common
+          persistentVolumeClaim:
+            claimName: fileflows-common
+        - name: graphics-card
+          hostPath:
+            path: /dev/dri
+        - name: media
+          hostPath:
+            path: /mnt/media

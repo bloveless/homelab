@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: profilarr
+spec:
+  type: LoadBalancer
+  selector:
+    app: profilarr
+    component: server
+  ports:
+    - name: http
+      port: 6868
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profilarr
+  labels:
+    app: profilarr
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: profilarr
+      component: server
+  template:
+    metadata:
+      labels:
+        app: profilarr
+        component: server
+    spec:
+      containers:
+        - name: profilarr
+          image: santiagosayshey/profilarr:v1.1.3
+          env:
+            - name: TZ
+              value: "America/Los_Angeles"
+          ports:
+            - name: http
+              containerPort: 6868
+          volumeMounts:
+            - name: data
+              mountPath: /config
+            - name: backups
+              mountPath: /config/backups
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: profilarr-data
+        - name: backups
+          hostPath:
+            path: /mnt/backups/profilarr
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: profilarr-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

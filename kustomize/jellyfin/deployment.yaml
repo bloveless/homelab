@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  labels:
+    app: jellyfin
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: jellyfin
+      component: server
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+        component: server
+    spec:
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:10.11
+          env:
+            - name: TZ
+              value: "America/Los_Angeles"
+          ports:
+            - name: http
+              containerPort: 8096
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            privileged: true
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+            - name: config
+              mountPath: /config
+            - name: graphics-card
+              mountPath: /dev/dri
+            - name: media
+              mountPath: /mnt/media
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config
+        - name: cache
+          persistentVolumeClaim:
+            claimName: jellyfin-cache
+        - name: graphics-card
+          hostPath:
+            path: /dev/dri
+        - name: media
+          hostPath:
+            path: /mnt/media

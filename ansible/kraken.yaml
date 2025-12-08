@@ -109,7 +109,7 @@
         user: root
         job: "/usr/local/bin/incus-backup-instances.sh"
         cron_file: incus-backups
-      when: ansible_hostname == "kraken02"
+      when: ansible_hostname == "kraken03"
 
     - name: Backup incus volumes nightly
       ansible.builtin.cron:
@@ -119,4 +119,4 @@
         user: root
         job: "/usr/local/bin/incus-backup-volumes.sh"
         cron_file: incus-backups
-      when: ansible_hostname == "kraken02"
+      when: ansible_hostname == "kraken03"

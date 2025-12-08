@@ -39,7 +39,7 @@ for PROJ in $PROJECTS; do
 
         log "Exporting instance: $INSTANCE (Project: $PROJ)..."
 
-        if incus export "$INSTANCE" "$BACKUP_PATH" --project "$PROJ" --optimized-storage --instance-only > /dev/null 2>&1; then
+        if incus export "$INSTANCE" "$BACKUP_PATH" --project "$PROJ" --instance-only > /dev/null 2>&1; then
             log "SUCCESS: Exported to $BACKUP_PATH"
             FILES_TO_DELETE=$(ls -tp "$BACKUP_DIR/${PROJ}_${INSTANCE}_"*.tar.gz 2>/dev/null | \
                               grep -v '/$' | \

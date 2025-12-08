@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+spec:
+  type: LoadBalancer
+  selector:
+    app: jellyfin
+    component: server
+  ports:
+    - name: http
+      port: 8096

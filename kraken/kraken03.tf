@@ -66,7 +66,7 @@ resource "incus_instance" "omada" {
   config = {
     "boot.autostart"   = true
     "boot.autorestart" = true
-    "environment.TZ"   = "tls.America/Los_Angeles"
+    "environment.TZ"   = "America/Los_Angeles"
     # this strange format is required because of the * in the options which keeps getting escaped as \* unless it is double and single quoted
     "oci.entrypoint" = "'/entrypoint.sh java -server -Xms128m -Xmx1024m -XX:MaxHeapFreeRatio=60 -XX:MinHeapFreeRatio=30 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/tplink/EAPController/logs/java_heapdump.hprof -Djava.awt.headless=true --add-opens java.base/sun.security.x509=ALL-UNNAMED --add-opens java.base/sun.security.util=ALL-UNNAMED -cp /opt/tplink/EAPController/lib/*::/opt/tplink/EAPController/properties: com.tplink.smb.omada.starter.OmadaLinuxMain'"
   }

@@ -33,9 +33,9 @@ for POOL in $POOLS; do
     for VOLUME in $VOLUMES; do
         BACKUP_NAME="${POOL}_${VOLUME}_${DATE_TAG}.tar.gz"
         BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME"
-        
+
         log "Exporting volume: $VOLUME (Pool: $POOL)..."
-        if incus storage volume export "$POOL" "$VOLUME" "$BACKUP_PATH" --optimized-storage --volume-only > /dev/null 2>&1; then
+        if incus storage volume export "$POOL" "$VOLUME" "$BACKUP_PATH" --volume-only > /dev/null 2>&1; then
             log "SUCCESS: Exported to $BACKUP_PATH"
             FILES_TO_DELETE=$(ls -tp "$BACKUP_DIR/${PROJ}_${VOLUME}_"*.tar.gz 2>/dev/null | \
                               grep -v '/$' | \
