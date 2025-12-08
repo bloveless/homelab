@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fritzandandre
+  labels:
+    app: fritzandandre
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: fritzandandre
+      component: server
+  template:
+    metadata:
+      labels:
+        app: fritzandandre
+        component: server
+    spec:
+      containers:
+        - name: fritzandandre
+          image: ghcr.io/bloveless/fritzandandre.com:sha-933e05f
+          env:
+            - name: "ADMIN_THEME"
+              value: "pyrocms.theme.accelerant"
+            - name: "APPLICATION_DOMAIN"
+              value: "fritzandandre.com"
+            - name: "APPLICATION_NAME"
+              value: "Fritz And Andre"
+            - name: "APPLICATION_REFERENCE"
+              value: "fna"
+            - name: "APP_DEBUG"
+              value: "false"
+            - name: "APP_TIMEZONE"
+              value: "America/Denver"
+            - name: "APP_URL"
+              value: "https://fritzandandre.com/"
+            - name: "DB_HOST"
+              value: "192.168.200.6"
+            - name: "DB_PORT"
+              value: "3306"
+            - name: "DB_DATABASE"
+              value: "fritzandandre"
+            - name: "DB_PREFIX"
+              value: "fna_"
+            - name: "DEFAULT_LOCALE"
+              value: "en"
+            - name: "INSTALLED"
+              value: "true"
+            - name: "STANDARD_THEME"
+              value: "fritzandandre.theme.fna"
+            - name: "SALESFORCE_WSDL"
+              value: "wsdl/partner.wsdl"
+            - name: "DB_USERNAME"
+              value: "fritzandandre"
+            - name: "APP_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: "fritzandandre"
+                  key: "app_key"
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: "fritzandandre"
+                  key: "db_password"
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: public
+              mountPath: "/app/public/app"
+      imagePullSecrets:
+        - name: fritzandandre-ghcr
+      volumes:
+        - name: public
+          hostPath:
+            path: /mnt/homelab/fritzandandre/fritzandandre.com/public
