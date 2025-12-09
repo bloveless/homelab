@@ -4,3 +4,4 @@ namespace: monitoring
 resources:
   - namespace.yaml
   - prometheus-deployment.yaml
+  - grafana.yaml
