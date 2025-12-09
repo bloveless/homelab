@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: brennonloveless
+spec:
+  type: LoadBalancer
+  selector:
+    app: brennonloveless
+    component: server
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 80
