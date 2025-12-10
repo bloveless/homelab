@@ -3,5 +3,12 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - namespace.yaml
-  - prometheus-deployment.yaml
-  - grafana.yaml
+  - prometheus/rbac.yaml
+  - prometheus/configmap.yaml
+  - prometheus/deployment.yaml
+  - prometheus/service.yaml
+  - node-exporter/daemonset.yaml
+  - node-exporter/service.yaml
+  - grafana/configmap.yaml
+  - grafana/deployment.yaml
+  - grafana/service.yaml
