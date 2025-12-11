@@ -1,0 +1,25 @@
+- Websites:
+    - Brennon Loveless:
+        - abbr: BL
+          href: https://brennonloveless.com
+    - Fritz and Andre:
+        - abbr: FnA
+          href: https://fritzandandre.com
+
+- Infrastructure:
+    - Postgres:
+        - abbr: PSQL
+          description: "192.168.200.5"
+    - Caddy:
+        - abbr: C
+          description: "192.168.200.7"
+    - Mariadb:
+        - abbr: MDB
+          description: "192.168.200.6"
+    - Omada Controller:
+        - abbr: OC
+          href: https://omada.lan.brennonloveless.com
+          description: "192.168.200.11"
+    - Tailscale:
+        - abbr: TS
+          description: 192.168.200.8
