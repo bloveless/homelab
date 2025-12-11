@@ -1,0 +1,60 @@
+groups:
+  - name: pod_alerts
+    interval: 30s
+    rules:
+      - alert: PodHighCPU
+        expr: sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", container!="POD"}[5m])) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} high CPU usage"
+          description: "Pod is using {{ $value }} cores (>80%) for more than 5 minutes"
+
+      - alert: PodHighMemory
+        expr: sum by (namespace, pod) (container_memory_working_set_bytes{container!="", container!="POD"}) > 1073741824
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} high memory usage"
+          description: "Pod is using {{ $value | humanize }}B of memory (>1GB) for more than 5 minutes"
+
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+          description: "Pod has restarted {{ $value }} times in the last 15 minutes"
+
+  - name: node_alerts
+    interval: 30s
+    rules:
+      - alert: NodeHighCPU
+        expr: (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node {{ $labels.instance }} high CPU usage"
+          description: "Node CPU usage is {{ $value | humanize }}% (>80%) for more than 5 minutes"
+
+      - alert: NodeHighMemory
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node {{ $labels.instance }} high memory usage"
+          description: "Node memory usage is {{ $value | humanize }}% (>80%) for more than 5 minutes"
+
+      - alert: NodeDiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node {{ $labels.instance }} low disk space on {{ $labels.mountpoint }}"
+          description: "Disk usage is {{ $value | humanize }}% (>80%) for more than 5 minutes"
