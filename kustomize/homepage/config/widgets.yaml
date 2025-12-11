@@ -1,3 +1,6 @@
+- search:
+    provider: duckduckgo
+    target: _blank
 - kubernetes:
     cluster:
       show: false
@@ -16,6 +19,12 @@
     cpu: true
     memory: true
     network: default
-- search:
-    provider: duckduckgo
-    target: _blank
+- openmeteo:
+    label: Post Falls
+    latitude: 47.71754363856643
+    longitude: -116.91818818359036
+    timezone: America/Los_Angeles
+    units: imperial
+    cache: 5 # Time in minutes to cache API responses, to stay within limits
+    format: # optional, Intl.NumberFormat options
+      maximumFractionDigits: 1
