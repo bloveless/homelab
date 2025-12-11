@@ -1,11 +1,14 @@
 - Ingress:
     - Caddy:
+        icon: caddy.svg
         widgets:
           - type: caddy
             url: http://192.168.200.7:2019
 
 - Monitoring:
     - Grafana:
+        href: https://grafana.brennonloveless.com
+        icon: grafana.svg
         widget:
           type: grafana
           # version: 1 # optional, default is 1
@@ -14,18 +17,22 @@
           username: "{{HOMEPAGE_VAR_GRAFANA_USERNAME}}"
           password: "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"
     - Prometheus:
+        href: https://prometheus.lan.brennonloveless.com
+        icon: prometheus.svg
         widget:
           type: prometheus
           url: http://prometheus.monitoring:9090
 - Media Server:
     - Seerr:
         href: https://seerr.brennonloveless.com
+        icon: jellyseerr.svg
         widget:
           type: jellyseerr
           url: http://seerr.media-server:5055
           key: "{{HOMEPAGE_VAR_SEERR_API_KEY}}"
     - Jellyfin:
         href: https://jellyfin.brennonloveless.com
+        icon: jellyfin.svg
         widget:
           type: jellyfin
           url: http://jellyfin.jellyfin:8096
@@ -38,6 +45,7 @@
           expandOneStreamToTwoRows: false # optional, defaults to true
     - Radarr:
         href: https://radarr.lan.brennonloveless.com
+        icon: radarr.svg
         widgets:
           - type: radarr
             url: http://radarr.media-server:7878
@@ -45,6 +53,7 @@
             enableQueue: true
     - Sonarr:
         href: https://sonarr.lan.brennonloveless.com
+        icon: sonarr.svg
         widgets:
           - type: sonarr
             url: http://sonarr.media-server:8989
@@ -52,12 +61,14 @@
             enableQueue: true
     - Prowlarr:
         href: https://profilarr.lan.brennonloveless.com
+        icon: prowlarr.svg
         widget:
           type: prowlarr
           url: http://prowlarr.media-server:9696
           key: "{{HOMEPAGE_VAR_PROWLARR_API_KEY}}"
     - Qbittorrent:
         href: https://qbittorrent.lan.brennonloveless.com
+        icon: qbittorrent.svg
         widget:
           type: qbittorrent
           url: http://qbittorrent.media-server:8080
@@ -67,6 +78,7 @@
 - Processing:
     - Fileflows:
         href: https://fileflows.lan.brennonloveless.com
+        icon: fileflows.svg
         widgets:
           - type: fileflows
             url: http://fileflows.fileflows:5000

@@ -8,6 +8,7 @@ resources:
   - serviceaccount.yaml
   - secret.yaml
   - service.yaml
+  - pvc.yaml
 configMapGenerator:
   - name: homepage-config
     files:

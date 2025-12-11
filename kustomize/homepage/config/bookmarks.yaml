@@ -8,18 +8,18 @@
 
 - Infrastructure:
     - Postgres:
-        - abbr: PSQL
+        - icon: postgres.svg
           description: "192.168.200.5"
     - Caddy:
-        - abbr: C
+        - icon: caddy.svg
           description: "192.168.200.7"
     - Mariadb:
-        - abbr: MDB
+        - icon: mariadb.svg
           description: "192.168.200.6"
     - Omada Controller:
-        - abbr: OC
+        - icon: omada.svg
           href: https://omada.lan.brennonloveless.com
           description: "192.168.200.11"
     - Tailscale:
-        - abbr: TS
+        - icon: tailscale.svg
           description: 192.168.200.8

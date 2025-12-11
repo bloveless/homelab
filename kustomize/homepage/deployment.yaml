@@ -65,9 +65,14 @@ spec:
               subPath: widgets.yaml
             - mountPath: /app/config/logs
               name: logs
+            - mountPath: /app/public/images
+              name: homepage-images
       volumes:
         - name: homepage-config
           configMap:
             name: homepage-config
         - name: logs
           emptyDir: {}
+        - name: homepage-images
+          persistentVolumeClaim:
+            claimName: homepage-images
