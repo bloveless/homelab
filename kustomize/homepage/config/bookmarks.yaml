@@ -9,17 +9,20 @@
 - Infrastructure:
     - Postgres:
         - icon: postgres.svg
-          description: "192.168.200.5"
-    - Caddy:
-        - icon: caddy.svg
-          description: "192.168.200.7"
+          description: 192.168.200.5
     - Mariadb:
         - icon: mariadb.svg
-          description: "192.168.200.6"
+          description: 192.168.200.6
+    - Caddy:
+        - icon: caddy.svg
+          description: 192.168.200.7
+    - Tailscale:
+        - icon: tailscale.svg
+          description: 192.168.200.8
+    - Pihole:
+        - icon: pi-hole.svg
+          description: 192.168.200.9
     - Omada Controller:
         - icon: omada.svg
           href: https://omada.lan.brennonloveless.com
           description: "192.168.200.11"
-    - Tailscale:
-        - icon: tailscale.svg
-          description: 192.168.200.8
