@@ -115,6 +115,14 @@ scrape_configs:
         action: replace
         target_label: kubernetes_pod_name
 
+  - job_name: caddy
+    static_configs:
+      - targets: ['192.168.200.7:2019']
+
+  - job_name: crowdsec
+    static_configs:
+      - targets: ['192.168.200.7:6060']
+
   # External targets - add your own here
   - job_name: "external-services"
     static_configs:

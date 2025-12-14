@@ -13,6 +13,11 @@ resources:
   - node-exporter/service.yaml
   - grafana/deployment.yaml
   - grafana/service.yaml
+  - loki/deployment.yaml
+  - loki/service.yaml
+  - alloy/rbac.yaml
+  - alloy/deployment.yaml
+  - alloy/service.yaml
 
 configMapGenerator:
   - name: alertmanager-config
@@ -25,3 +30,9 @@ configMapGenerator:
     files:
       - prometheus/config/prometheus.yml
       - prometheus/config/alert-rules.yml
+  - name: loki-config
+    files:
+      - loki/config/loki.yaml
+  - name: alloy-config
+    files:
+      - alloy/config/config.alloy
