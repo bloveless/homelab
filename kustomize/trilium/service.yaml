@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trilium
+spec:
+  type: LoadBalancer
+  selector:
+    app: trilium
+    component: server
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8080

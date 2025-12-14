@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trilium
+  labels:
+    app: trilium
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: trilium
+      component: server
+  template:
+    metadata:
+      labels:
+        app: trilium
+        component: server
+    spec:
+      containers:
+        - name: trilium
+          image: triliumnext/trilium:v0.100.0
+          env:
+            - name: TRILIUM_DATA_DIR
+              value: /home/node/trilium-data
+            - name: TRILIUM_PORT
+              value: "8080"
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /home/node/trilium-data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: trilium-data
