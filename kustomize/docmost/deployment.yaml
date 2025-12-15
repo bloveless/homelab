@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docmost
+  labels:
+    app: docmost
+    component: server
+spec:
+  selector:
+    matchLabels:
+      app: docmost
+      component: server
+  template:
+    metadata:
+      labels:
+        app: docmost
+        component: server
+    spec:
+      containers:
+        - name: docmost
+          image: docmost/docmost:0.24.1
+          envFrom:
+            - secretRef:
+                name: docmost-keys
+          env:
+            - name: APP_URL
+              value: "https://notes.brennonloveless.com"
+          ports:
+            - name: http
+              containerPort: 3000
+          volumeMounts:
+            - name: data
+              mountPath: /app/data/storage
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: docmost-data
