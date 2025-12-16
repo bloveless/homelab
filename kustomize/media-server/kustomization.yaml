@@ -11,3 +11,4 @@ resources:
   - profilarr.yaml
   - cleanuparr.yaml
   - huntarr.yaml
+  - flaresolverr.yaml
