@@ -1,48 +1,49 @@
-# qbittorrent has been removed because the RAM usage was super high. Trying out transmission for now
 apiVersion: v1
 kind: Service
 metadata:
-  name: qbittorrent
+  name: transmission
 spec:
   type: LoadBalancer
   selector:
-    app: qbittorrent
+    app: transmission
     component: server
   ports:
     - name: http
-      port: 8080
+      port: 9091
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: qbittorrent
+  name: transmission
   labels:
-    app: qbittorrent
+    app: transmission
     component: server
 spec:
   selector:
     matchLabels:
-      app: qbittorrent
+      app: transmission
       component: server
   template:
     metadata:
       labels:
-        app: qbittorrent
+        app: transmission
         component: server
     spec:
       containers:
-        - name: qbittorrent
-          image: linuxserver/qbittorrent:5.1.4
+        - name: transmission
+          image: linuxserver/transmission:4.0.6
           env:
             - name: TZ
               value: "America/Los_Angeles"
+            - name: PEERPORT
+              value: "62250"
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 9091
           volumeMounts:
             - name: data
               mountPath: /config
@@ -59,19 +60,19 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: qbittorrent-data
+            claimName: transmission-data
         - name: media
           hostPath:
             path: /mnt/media
         - name: wireguardconfig
           secret:
-            secretName: qbittorrent-wireguard-config
+            secretName: transmission-wireguard-config
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: qbittorrent-data
+  name: transmission-data
 spec:
   accessModes:
     - ReadWriteOnce

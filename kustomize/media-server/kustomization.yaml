@@ -6,9 +6,9 @@ resources:
   - radarr.yaml
   - sonarr.yaml
   - prowlarr.yaml
-  - qbittorrent.yaml
   - seerr.yaml
   - profilarr.yaml
   - cleanuparr.yaml
   - huntarr.yaml
   - nzbget.yaml
+  - transmission.yaml
